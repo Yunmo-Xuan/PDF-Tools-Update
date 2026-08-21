@@ -173,7 +173,7 @@ A：当前版本仅支持 Windows，未来可能适配其他平台。
 
 本软件为免费软件，您可以自由使用与传播。  
 请勿用于商业售卖或未经授权的二次分发。  
-使用本软件即表示您同意 [使用条款](https://github.com/Yunmo-Xuan/PDF-Tools-Update/blob/main/LICENSE)。
+使用本软件即表示您同意 [使用条款](https://github.com/Yunmo-Xuan/PDF-Tools-Update/blob/main/LICENSE.md)。
 
 ---
 
