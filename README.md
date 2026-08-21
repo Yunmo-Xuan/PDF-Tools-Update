@@ -77,7 +77,7 @@ PDF 工具箱是一款**完全免费、无需安装、干净无广告**的 Windo
 ```json
 {
   "version": "5.0.3",
-  "download_url": "https://pan.baidu.com/s/你的链接"
+  "download_url": "https://pan.baidu.com/s/15RhbPNt1BiRUj0FDz3Bd7A?pwd=2dca"
 }
 ```
 
