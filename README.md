@@ -126,7 +126,7 @@ A：不需要，下载后双击即可使用，真正的绿色免安装。
 A：不会，所有操作均在本地完成，您的文件只保存在您指定的位置。
 
 **Q：为什么自动更新没有反应？**  
-A：请检查网络是否可访问 GitHub，以及仓库中的 `version.json` 是否正确。详细排查可查看 [Issue #1](https://github.com/Yunmo-Xuan/PDF-Tools-Update/issues/1)。
+A：请检查是否联网或者网络是否可访问 GitHub。
 
 **Q：支持 Mac 或 Linux 吗？**  
 A：当前版本仅支持 Windows，未来可能适配其他平台。
