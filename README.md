@@ -95,7 +95,7 @@ PDF 工具箱是一款**完全免费、无需安装、干净无广告**的 Windo
 
 ---
 
-## 🖼️ 界面预览
+## 🖼️ 界面展示
 
 ![主界面](https://github.com/user-attachments/assets/44008f0e-1062-4c51-beea-3ec6c905b990)
 
