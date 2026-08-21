@@ -73,14 +73,7 @@ PDF 工具箱是一款**完全免费、无需安装、干净无广告**的 Windo
 
 - 检测到新版本后，会弹窗提示用户，并打开下载页面（百度网盘）。
 - 更新检查仅获取版本号和下载链接，不下载任何文件，安全可控。
-- `version.json` 由本仓库维护，示例格式如下：
-
-```json
-{
-  "version": "5.0.3",
-  "download_url": "https://pan.baidu.com/s/15RhbPNt1BiRUj0FDz3Bd7A?pwd=2dca"
-}
-```
+- `version.json` 由本仓库维护。
 
 ---
 
