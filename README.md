@@ -139,7 +139,7 @@ PDF 工具箱是一款**完全免费、干净无广告**的 Windows 桌面软件
 
 ## 🖼️ 界面展示
 
-![主界面](https://github.com/user-attachments/assets/44008f0e-1062-4c51-beea-3ec6c905b990)
+![主界面](https://github.com/user-attachments/assets/58df89ab-9a14-4f2e-80ad-38d120547bca)
 
 ---
 
