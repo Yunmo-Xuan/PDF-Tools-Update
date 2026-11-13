@@ -162,7 +162,7 @@ PDF Toolkit 是一款**完全免费、干净无广告、源代码公开**的 Win
 
 ## 🖼️ 界面展示
 
-![主界面](https://github.com/user-attachments/assets/2c2cc78a-a9d1-4dc5-8886-6b48df785a66)
+![主界面](https://github.com/user-attachments/assets/58df89ab-9a14-4f2e-80ad-38d120547bca)
 
 ---
 
