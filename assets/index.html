@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title data-i18n="app_title">PDF Toolkit</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- 导航、首页磁贴、图钉的图标：24×24 的描边图形，颜色由 .gi 的 stroke:currentColor 决定，
+         所以它们跟着主题色和深浅色模式一起走。emoji 做不到这件事——它由系统字体上色，
+         主题换成墨绿它还是那副彩色，深色模式底下亮得很突兀。
+         用法 <svg class="gi"><use href="#gi-页面id"/></svg>；加新页面时在这里补一个同名 symbol。 -->
+    <svg class="icon-sprite" aria-hidden="true" focusable="false">
+        <symbol id="gi-home" viewBox="0 0 24 24">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <path d="M9 22V12h6v10"/>
+        </symbol>
+        <symbol id="gi-viewer" viewBox="0 0 24 24">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <path d="M14 2v6h6"/>
+            <path d="M16 13H8M16 17H8"/>
+        </symbol>
+        <symbol id="gi-splitmerge" viewBox="0 0 24 24">
+            <circle cx="6" cy="6" r="3"/>
+            <circle cx="6" cy="18" r="3"/>
+            <path d="M20 4L8.12 15.88M14.47 14.48L20 20M8.12 8.12L12 12"/>
+        </symbol>
+        <symbol id="gi-stamp" viewBox="0 0 24 24">
+            <path d="M12 20h9"/>
+            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/>
+        </symbol>
+        <symbol id="gi-watermark" viewBox="0 0 24 24">
+            <path d="M12 2.7l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+        </symbol>
+        <symbol id="gi-extract" viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <path d="M17 8l-5-5-5 5"/>
+            <path d="M12 3v12"/>
+        </symbol>
+        <symbol id="gi-layout" viewBox="0 0 24 24">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <path d="M3 9h18M9 21V9"/>
+        </symbol>
+        <symbol id="gi-compress" viewBox="0 0 24 24">
+            <path d="M4.4 8.2L8.8 12l-4.4 3.8M19.6 8.2L15.2 12l4.4 3.8"/>
+            <path d="M12 5.4v13.2"/>
+        </symbol>
+        <symbol id="gi-batch" viewBox="0 0 24 24">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+        </symbol>
+        <symbol id="gi-security" viewBox="0 0 24 24">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M9 11.6l2.2 2.2 4-4.4"/>
+        </symbol>
+        <symbol id="gi-convert" viewBox="0 0 24 24">
+            <path d="M4.4 12a7.6 7.6 0 0 1 13.2-5.2M19.6 12a7.6 7.6 0 0 1-13.2 5.2"/>
+            <path d="M14.4 6.8h3.2V3.6M9.6 17.2H6.4v3.2"/>
+        </symbol>
+        <symbol id="gi-metadata" viewBox="0 0 24 24">
+            <path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8z"/>
+            <circle cx="7" cy="7" r="1.4"/>
+        </symbol>
+        <symbol id="gi-print" viewBox="0 0 24 24">
+            <path d="M6.4 8.4V3.6a1.2 1.2 0 0 1 1.2-1.2h8.8a1.2 1.2 0 0 1 1.2 1.2v4.8"/>
+            <path d="M6.4 18.4H4.8a1.6 1.6 0 0 1-1.6-1.6v-5.6a1.6 1.6 0 0 1 1.6-1.6h14.4a1.6 1.6 0 0 1 1.6 1.6v5.6a1.6 1.6 0 0 1-1.6 1.6h-1.6"/>
+            <rect x="6.4" y="14" width="11.2" height="6.8" rx="1"/>
+            <path d="M17.2 11.2h.01"/>
+        </symbol>
+        <symbol id="gi-pin" viewBox="0 0 24 24">
+            <path d="M12 17.4v5.2"/>
+            <path d="M9.2 10.6a2 2 0 0 1-1.1 1.8l-1.8.9A2 2 0 0 0 5.2 15.1v.5a1 1 0 0 0 1 1h11.6a1 1 0 0 0 1-1v-.5a2 2 0 0 0-1.1-1.8l-1.8-.9a2 2 0 0 1-1.1-1.8V6.6a1 1 0 0 1 1-1 1.8 1.8 0 0 0 0-3.6H8.2a1.8 1.8 0 0 0 0 3.6 1 1 0 0 1 1 1z"/>
+        </symbol>
+        <symbol id="gi-open" viewBox="0 0 24 24">
+            <path d="M3.2 18.8V6.4a1.8 1.8 0 0 1 1.8-1.8h3.8l2 2.8h7.4a1.8 1.8 0 0 1 1.8 1.8v2"/>
+            <path d="M3.2 18.8 6.4 9.6a1.6 1.6 0 0 1 1.5-1.1h13.3a1 1 0 0 1 .95 1.3l-2.3 7.6a1.6 1.6 0 0 1-1.5 1.1H5a1.8 1.8 0 0 1-1.8-.7z"/>
+        </symbol>
+        <symbol id="gi-attach" viewBox="0 0 24 24">
+            <path d="M21.4 11.1l-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.9-2.9l8.5-8.5"/>
+        </symbol>
+        <symbol id="gi-add" viewBox="0 0 24 24">
+            <path d="M12 5.2v13.6M5.2 12h13.6"/>
+        </symbol>
+        <symbol id="gi-trash" viewBox="0 0 24 24">
+            <path d="M3.4 6.2h17.2"/>
+            <path d="M18.8 6.2v13a2 2 0 0 1-2 2H7.2a2 2 0 0 1-2-2v-13"/>
+            <path d="M9.4 6.2V4.4a2 2 0 0 1 2-2h1.2a2 2 0 0 1 2 2v1.8"/>
+            <path d="M10.2 11v5M13.8 11v5"/>
+        </symbol>
+        <symbol id="gi-image" viewBox="0 0 24 24">
+            <rect x="3.4" y="4.4" width="17.2" height="15.2" rx="2"/>
+            <circle cx="9" cy="9.6" r="1.6"/>
+            <path d="M20.6 15.4l-4.6-4.6-8.4 8.8"/>
+        </symbol>
+        <symbol id="gi-text" viewBox="0 0 24 24">
+            <path d="M4.4 7h15.2M4.4 11.6h11.6M4.4 16.2h15.2"/>
+        </symbol>
+        <symbol id="gi-globe" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M3 12h18"/>
+            <path d="M12 3a14.6 14.6 0 0 1 0 18 14.6 14.6 0 0 1 0-18z"/>
+        </symbol>
+        <symbol id="gi-pages" viewBox="0 0 24 24">
+            <rect x="8.4" y="8.4" width="12.2" height="12.2" rx="1.8"/>
+            <path d="M16.4 5.6V4.8a1.4 1.4 0 0 0-1.4-1.4H5a1.4 1.4 0 0 0-1.4 1.4v10A1.4 1.4 0 0 0 5 16.2h.8"/>
+        </symbol>
+        <symbol id="gi-numbers" viewBox="0 0 24 24">
+            <path d="M4.6 9.2h14.8M4.6 14.8h14.8M9.4 4.4L7.4 19.6M16.6 4.4l-2 15.2"/>
+        </symbol>
+        <symbol id="gi-header" viewBox="0 0 24 24">
+            <rect x="3.6" y="4.4" width="16.8" height="15.2" rx="1.8"/>
+            <path d="M3.6 8.6h16.8M6.8 12.4h7.6M6.8 16.2h5.4"/>
+        </symbol>
+        <symbol id="gi-zoom" viewBox="0 0 24 24">
+            <circle cx="10.6" cy="10.6" r="6.6"/>
+            <path d="M15.4 15.4l4.8 4.8M10.6 8v5.2M8 10.6h5.2"/>
+        </symbol>
+        <symbol id="gi-search" viewBox="0 0 24 24">
+            <circle cx="10.6" cy="10.6" r="6.6"/>
+            <path d="M15.4 15.4l4.8 4.8"/>
+        </symbol>
+        <symbol id="gi-ruler" viewBox="0 0 24 24">
+            <path d="M3.4 14.6 14.6 3.4a1.2 1.2 0 0 1 1.7 0l4.3 4.3a1.2 1.2 0 0 1 0 1.7L9.4 20.6a1.2 1.2 0 0 1-1.7 0l-4.3-4.3a1.2 1.2 0 0 1 0-1.7z"/>
+            <path d="M7.6 11.4 9 12.8M11 8l1.4 1.4M14.4 4.6 15.8 6"/>
+        </symbol>
+        <symbol id="gi-bookmark" viewBox="0 0 24 24">
+            <path d="M6.4 4.2h11.2a1 1 0 0 1 1 1v14.6l-6.6-3.6-6.6 3.6V5.2a1 1 0 0 1 1-1z"/>
+        </symbol>
+        <symbol id="gi-save" viewBox="0 0 24 24">
+            <path d="M19.2 20.8H5.6a2 2 0 0 1-2-2V5.2a2 2 0 0 1 2-2h10l4.4 4.4v11a2 2 0 0 1-2 2z"/>
+            <path d="M8.4 20.8v-6.4h7.2v6.4M8.4 3.2v4.4h7"/>
+        </symbol>
+        <symbol id="gi-import" viewBox="0 0 24 24">
+            <path d="M20.6 15.2v3.6a2 2 0 0 1-2 2H5.4a2 2 0 0 1-2-2v-3.6"/>
+            <path d="M16.6 10.6 12 15.2 7.4 10.6M12 15.2V3.4"/>
+        </symbol>
+        <symbol id="gi-broom" viewBox="0 0 24 24">
+            <path d="M14.8 3.4l5.8 5.8"/>
+            <path d="M16.2 7.6L9.6 14.2a3 3 0 0 0-.7 1.2l-1.3 3.4 3.4-1.3a3 3 0 0 0 1.2-.7l6.6-6.6"/>
+            <path d="M7.6 16.4L4 20"/>
+        </symbol>
+        <symbol id="gi-ban" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="8.6"/>
+            <path d="M6 6l12 12"/>
+        </symbol>
+        <symbol id="gi-lock" viewBox="0 0 24 24">
+            <rect x="4.6" y="10.4" width="14.8" height="10" rx="2"/>
+            <path d="M8 10.4V7a4 4 0 0 1 8 0v3.4"/>
+        </symbol>
+        <symbol id="gi-unlock" viewBox="0 0 24 24">
+            <rect x="4.6" y="10.4" width="14.8" height="10" rx="2"/>
+            <path d="M8 10.4V7a4 4 0 0 1 7.6-1.7"/>
+        </symbol>
+        <symbol id="gi-redact" viewBox="0 0 24 24">
+            <rect x="3.6" y="4.6" width="16.8" height="14.8" rx="1.8"/>
+            <path d="M6.8 8.4h6.4"/>
+            <rect x="6.8" y="12" width="10.4" height="3.6" rx="1"/>
+        </symbol>
+    </svg>
+
+    <div class="loading-bar" id="loading-bar"></div>
+    <!-- 长任务（整本 OCR / 可搜索 PDF / 扫描质检 / 拍照增强）的进度与取消：
+         浮在右下角，不挡表单，也不管滚到哪儿都看得见 -->
+    <div class="job-bar hidden" id="job-bar" role="status">
+        <span class="job-text" id="job-text"></span>
+        <span class="job-track"><span class="job-fill" id="job-fill"></span></span>
+        <button class="btn ghost job-cancel" id="job-cancel" onclick="cancelJob()"
+                data-i18n="job_cancel_btn">取消</button>
+    </div>
+
+    <div class="sidebar">
+        <div class="logo" id="app-logo"><span class="logo-mark">✦</span> <span data-i18n="app_title" class="logo-text">PDF Toolkit</span></div>
+        <div class="nav-group-label"><span data-i18n="group_core">核心功能</span></div>
+        <button class="nav-btn active" onclick="showPage('home', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-home"/></svg></span> <span class="nav-label" data-i18n="home">首页</span></button>
+        <button class="nav-btn" onclick="showPage('viewer', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-viewer"/></svg></span> <span class="nav-label" data-i18n="viewer">查看 PDF</span></button>
+        <div class="nav-group-label"><span data-i18n="group_edit">编辑工具</span></div>
+        <button class="nav-btn" onclick="showPage('splitmerge', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-splitmerge"/></svg></span> <span class="nav-label" data-i18n="split_merge">拆分与合并</span></button>
+        <button class="nav-btn" onclick="showPage('stamp', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-stamp"/></svg></span> <span class="nav-label" data-i18n="stamp">印章 / 签名</span></button>
+        <button class="nav-btn" onclick="showPage('watermark', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-watermark"/></svg></span> <span class="nav-label" data-i18n="watermark">文字水印</span></button>
+        <button class="nav-btn" onclick="showPage('extract', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-extract"/></svg></span> <span class="nav-label" data-i18n="extract">内容提取</span></button>
+        <button class="nav-btn" onclick="showPage('layout', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-layout"/></svg></span> <span class="nav-label" data-i18n="layout">排版与整理</span></button>
+        <div class="nav-group-label"><span data-i18n="group_advanced">高级功能</span></div>
+        <button class="nav-btn" onclick="showPage('compress', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-compress"/></svg></span> <span class="nav-label" data-i18n="compress">压缩 PDF</span></button>
+        <button class="nav-btn" onclick="showPage('batch', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-batch"/></svg></span> <span class="nav-label" data-i18n="batch">批量处理</span></button>
+        <button class="nav-btn" onclick="showPage('security', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-security"/></svg></span> <span class="nav-label" data-i18n="security">安全与整理</span></button>
+        <button class="nav-btn" onclick="showPage('convert', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-convert"/></svg></span> <span class="nav-label" data-i18n="convert">格式转换</span></button>
+        <button class="nav-btn" onclick="showPage('metadata', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-metadata"/></svg></span> <span class="nav-label" data-i18n="metadata">文档信息</span></button>
+        <div class="sidebar-footer">
+            <span class="version" id="app-version"></span>
+            <button class="icon-btn" id="settings-btn" onclick="openSettings()" title="设置" data-i18n-title="set_title" aria-label="设置" data-i18n-aria="set_title">⚙</button>
+        </div>
+    </div>
+    <!-- 收起键贴在导航栏右沿的竖直中间：left 认 --sidebar-w，折叠时跟着宽度走；
+         top:50% 是视口中线，窗口怎么缩放它自己对齐，不用 JS 量尺寸。
+         平时不现身（opacity:0 + pointer-events:none），鼠标碰到导航栏才浮出来；
+         收成图标条之后一直露着，否则没有把手再把它拉回来。 -->
+    <button class="nav-collapse" id="nav-collapse" onclick="toggleSidebar()" title="收起导航栏" data-i18n-title="dyn_1318" aria-label="收起导航栏" data-i18n-aria="dyn_1318" aria-expanded="true">‹</button>
+
+    <div class="main">
+        <!-- 首页 -->
+        <div class="page active" id="page-home">
+            <div class="card welcome-card">
+                <span class="welcome-greet" id="welcome-greet"></span>
+                <h2 data-i18n="welcome_title">你的全能 PDF 工作台</h2>
+                <p style="color:var(--text-secondary);font-size:14px;line-height:1.6;" data-i18n="welcome_subtitle">查看 · 拆分 · 合并 · 排版 · 提取 · 安全 · 转换，一站式完成。</p>
+            </div>
+            <div class="card">
+                <h2 style="font-size:16px;" data-i18n="recent_files">最近打开</h2>
+                <div id="recent-files"></div>
+            </div>
+            <!-- 磁贴和左侧导航一一对应：一共 11 张，顺序也跟着导航走。
+                 并进来的功能（页面管理、加密/解密、拆分与合并）不再单独立卡，
+                 卡片那句小字把它们点出来，省得首页比实际功能多出「入口」，用户照着首页找反而找不着。 -->
+            <div class="grid" id="home-grid">
+                <div class="feature-card" data-card="viewer" onclick="showPage('viewer', event)"><button class="card-pin" onclick="homePinCard(event, 'viewer')" title="置顶这个功能" data-i18n-title="home_pin_title" aria-label="置顶这个功能" data-i18n-aria="home_pin_title"><svg class="gi" aria-hidden="true"><use href="#gi-pin"/></svg></button><span class="icon"><svg class="gi" aria-hidden="true"><use href="#gi-viewer"/></svg></span><h3 data-i18n="viewer">查看 PDF</h3><p data-i18n="card_viewer_desc">流畅翻阅，缩略图导航</p></div>
+                <div class="feature-card" data-card="splitmerge" onclick="showPage('splitmerge', event)"><button class="card-pin" onclick="homePinCard(event, 'splitmerge')" title="置顶这个功能" data-i18n-title="home_pin_title" aria-label="置顶这个功能" data-i18n-aria="home_pin_title"><svg class="gi" aria-hidden="true"><use href="#gi-pin"/></svg></button><span class="icon"><svg class="gi" aria-hidden="true"><use href="#gi-splitmerge"/></svg></span><h3 data-i18n="split_merge">拆分与合并</h3><p data-i18n="card_splitmerge_desc">按页数或页码范围拆分，也能把多个 PDF 按顺序合并成一个</p></div>
+                <div class="feature-card" data-card="stamp" onclick="showPage('stamp', event)"><button class="card-pin" onclick="homePinCard(event, 'stamp')" title="置顶这个功能" data-i18n-title="home_pin_title" aria-label="置顶这个功能" data-i18n-aria="home_pin_title"><svg class="gi" aria-hidden="true"><use href="#gi-pin"/></svg></button><span class="icon"><svg class="gi" aria-hidden="true"><use href="#gi-stamp"/></svg></span><h3 data-i18n="stamp">印章 / 签名</h3><p data-i18n="card_stamp_desc">图片印章或手绘签名</p></div>
+                <div class="feature-card" data-card="watermark" onclick="showPage('watermark', event)"><button class="card-pin" onclick="homePinCard(event, 'watermark')" title="置顶这个功能" data-i18n-title="home_pin_title" aria-label="置顶这个功能" data-i18n-aria="home_pin_title"><svg class="gi" aria-hidden="true"><use href="#gi-pin"/></svg></button><span class="icon"><svg class="gi" aria-hidden="true"><use href="#gi-watermark"/></svg></span><h3 data-i18n="watermark">文字水印</h3><p data-i18n="card_watermark_desc">自定义颜色、透明度、平铺</p></div>
+                <div class="feature-card" data-card="extract" onclick="showPage('extract', event)"><button class="card-pin" onclick="homePinCard(event, 'extract')" title="置顶这个功能" data-i18n-title="home_pin_title" aria-label="置顶这个功能" data-i18n-aria="home_pin_title"><svg class="gi" aria-hidden="true"><use href="#gi-pin"/></svg></button><span class="icon"><svg class="gi" aria-hidden="true"><use href="#gi-extract"/></svg></span><h3 data-i18n="extract">内容提取</h3><p data-i18n="card_extract_desc">导出文字、图片、HTML</p></div>
+                <div class="feature-card" data-card="layout" onclick="showPage('layout', event)"><button class="card-pin" onclick="homePinCard(event, 'layout')" title="置顶这个功能" data-i18n-title="home_pin_title" aria-label="置顶这个功能" data-i18n-aria="home_pin_title"><svg class="gi" aria-hidden="true"><use href="#gi-pin"/></svg></button><span class="icon"><svg class="gi" aria-hidden="true"><use href="#gi-layout"/></svg></span><h3 data-i18n="layout">排版与整理</h3><p data-i18n="card_layout_desc">页面管理、页码、页眉页脚、裁剪、缩放</p></div>
+                <div class="feature-card" data-card="compress" onclick="showPage('compress', event)"><button class="card-pin" onclick="homePinCard(event, 'compress')" title="置顶这个功能" data-i18n-title="home_pin_title" aria-label="置顶这个功能" data-i18n-aria="home_pin_title"><svg class="gi" aria-hidden="true"><use href="#gi-pin"/></svg></button><span class="icon"><svg class="gi" aria-hidden="true"><use href="#gi-compress"/></svg></span><h3 data-i18n="compress">压缩 PDF</h3><p data-i18n="card_compress_desc">三级压缩减小体积</p></div>
+                <div class="feature-card" data-card="batch" onclick="showPage('batch', event)"><button class="card-pin" onclick="homePinCard(event, 'batch')" title="置顶这个功能" data-i18n-title="home_pin_title" aria-label="置顶这个功能" data-i18n-aria="home_pin_title"><svg class="gi" aria-hidden="true"><use href="#gi-pin"/></svg></button><span class="icon"><svg class="gi" aria-hidden="true"><use href="#gi-batch"/></svg></span><h3 data-i18n="batch">批量处理</h3><p data-i18n="card_batch_desc">批量拆分、转换、压缩</p></div>
+                <div class="feature-card" data-card="security" onclick="showPage('security', event)"><button class="card-pin" onclick="homePinCard(event, 'security')" title="置顶这个功能" data-i18n-title="home_pin_title" aria-label="置顶这个功能" data-i18n-aria="home_pin_title"><svg class="gi" aria-hidden="true"><use href="#gi-pin"/></svg></button><span class="icon"><svg class="gi" aria-hidden="true"><use href="#gi-security"/></svg></span><h3 data-i18n="security">安全与整理</h3><p data-i18n="card_security_desc">涂黑、清理、权限限制、加密解密</p></div>
+                <div class="feature-card" data-card="convert" onclick="showPage('convert', event)"><button class="card-pin" onclick="homePinCard(event, 'convert')" title="置顶这个功能" data-i18n-title="home_pin_title" aria-label="置顶这个功能" data-i18n-aria="home_pin_title"><svg class="gi" aria-hidden="true"><use href="#gi-pin"/></svg></button><span class="icon"><svg class="gi" aria-hidden="true"><use href="#gi-convert"/></svg></span><h3 data-i18n="convert">格式转换</h3><p data-i18n="card_convert_desc">Word / Excel / PPT / 图片，也能图片、文本转 PDF</p></div>
+                <div class="feature-card" data-card="metadata" onclick="showPage('metadata', event)"><button class="card-pin" onclick="homePinCard(event, 'metadata')" title="置顶这个功能" data-i18n-title="home_pin_title" aria-label="置顶这个功能" data-i18n-aria="home_pin_title"><svg class="gi" aria-hidden="true"><use href="#gi-pin"/></svg></button><span class="icon"><svg class="gi" aria-hidden="true"><use href="#gi-metadata"/></svg></span><h3 data-i18n="metadata">文档信息</h3><p data-i18n="card_metadata_desc">编辑标题、作者等元数据</p></div>
+            </div>
+        </div>
+
+        <!-- 查看 PDF -->
+        <div class="page" id="page-viewer">
+            <div class="card">
+                <h2 data-i18n="viewer">查看 PDF</h2>
+                <!-- 这一页的卡片是纵向 flex，两个按钮直接挂在卡片下会被拉成整行宽；
+                     套进 .row 就回到按钮自己的宽度，两个并排一行 -->
+                <div class="row">
+                    <button class="btn ghost" id="viewer-open-btn" onclick="selectPdf('viewer')"><span><svg class="gi" aria-hidden="true"><use href="#gi-open"/></svg></span> <span data-i18n="open_pdf">打开 PDF</span></button>
+                    <!-- 打印跟快捷键一个入口：Ctrl+P 打开的就是这个面板（见 app.js 的 printHandleShortcut） -->
+                    <button class="btn ghost" id="viewer-print-btn" onclick="openPrintPanel()"><span><svg class="gi" aria-hidden="true"><use href="#gi-print"/></svg></span> <span data-i18n="print_pdf">打印 PDF</span></button>
+                </div>
+                <!-- 状态放在顶上这条：卡片会随整册高度长到几百万像素，
+                     写在卡片末尾的那行字等于永远看不见 -->
+                <div class="status" id="viewer-status"></div>
+                <!-- 没打开文件时只留一句提示：空的 preview-container 会渲染成一条白色横条 -->
+                <div class="empty-state" id="viewer-empty">
+                    <span class="empty-icon"><svg class="gi" aria-hidden="true"><use href="#gi-viewer"/></svg></span>
+                    <p class="empty-title" data-i18n="viewer_empty">您还没有打开文件</p>
+                    <p class="empty-desc" data-i18n="viewer_empty_desc">点击上方「打开 PDF」选择文件，或从首页「最近打开」里继续上次的文档。</p>
+                </div>
+                <!-- 那两个 viewer-spacer 是把整册高度撑出来的空壳：格子按页码绝对定位在里面，
+                     只有视口附近的几批真的有图（见 app.js 的 viewerUpdate） -->
+                <div class="preview-container hidden" id="viewer-preview">
+                    <div class="thumbnails" id="viewer-thumbs"><div class="viewer-spacer" id="viewer-thumb-spacer"></div></div>
+                    <div class="pdf-view" id="viewer-pdf"><div class="viewer-spacer" id="viewer-spacer"></div></div>
+                </div>
+                <!-- 浮在可见区底端的那一条：左端翻页与页码框，右端预设缩放、百分比框和缩放滑块。
+                     它钉在卡片底沿（卡片定高、滚动发生在预览区内部），所以顶部按钮和这一条都不会被文档滚走。
+                     收起时只留右边那颗胶囊标（放中间会挡阅读），悬停展开、移开收起、点一下固定展开。
+                     展开/收起由 app.js 的 viewerBarInit 管（带一点延迟，鼠标在条上和从条上移开都算数） -->
+                <div class="viewer-bar-dock collapsed hidden" id="viewer-bar-dock">
+                    <div class="preview-toolbar viewer-bar" id="viewer-bar">
+                        <button class="page-nav-btn" id="viewer-first" data-i18n-title="viewer_first_page" title="第一页" aria-label="第一页" data-i18n-aria="viewer_first_page" onclick="viewerStepPage(-Infinity)">|◀</button>
+                        <button class="page-nav-btn" id="viewer-prev" data-i18n-title="viewer_prev_page" title="上一页" aria-label="上一页" data-i18n-aria="viewer_prev_page" onclick="viewerStepPage(-1)">‹</button>
+                        <input type="number" class="page-input" id="viewer-jump" min="1" value="1"
+                               aria-label="跳到第几页" data-i18n-aria="viewer_goto_page" onkeydown="if (event.key === 'Enter') viewerJumpToPage();"
+                               onchange="viewerJumpToPage();">
+                        <span class="page-info" id="viewer-page-info"></span>
+                        <button class="page-nav-btn" id="viewer-next" data-i18n-title="viewer_next_page" title="下一页" aria-label="下一页" data-i18n-aria="viewer_next_page" onclick="viewerStepPage(1)">›</button>
+                        <button class="page-nav-btn" id="viewer-last" data-i18n-title="viewer_last_page" title="最后一页" aria-label="最后一页" data-i18n-aria="viewer_last_page" onclick="viewerStepPage(Infinity)">▶|</button>
+                        <span class="toolbar-space"></span>
+                        <!-- 选字开关：文字层是往每一格上再铺一层透明 span，
+                             五千页里只有窗口那几页铺，关掉就把这一层的 DOM 整个撤掉 -->
+                        <button class="page-nav-btn" id="viewer-select-toggle"
+                                data-i18n="viewer_select_text" data-i18n-title="viewer_select_text_tip"
+                                title="把每页的文字铺在页面上，按住左键拖动就能选字"
+                                aria-pressed="true" onclick="viewerToggleTextLayer()">选字</button>
+                        <button class="page-nav-btn zoom-preset" id="viewer-zoom-one" data-i18n-title="viewer_zoom_one" title="实际大小 1:1" onclick="viewerSetZoom('one')">1:1</button>
+                        <button class="page-nav-btn zoom-preset" id="viewer-zoom-page" data-i18n-title="viewer_zoom_page" data-i18n="zoom_page_short" title="适应整页" onclick="viewerSetZoom('page')">整页</button>
+                        <button class="page-nav-btn zoom-preset active" id="viewer-zoom-width" data-i18n-title="viewer_zoom_width" data-i18n="zoom_width_short" title="适应页宽" onclick="viewerSetZoom('width')">页宽</button>
+                        <input type="number" class="page-input" id="viewer-zoom-pct" min="25" max="400" step="5" value="100"
+                               aria-label="缩放百分比" data-i18n-aria="viewer_zoom_pct" onkeydown="if (event.key === 'Enter') viewerZoomTyped();"
+                               onchange="viewerZoomTyped();">
+                        <span class="page-info">%</span>
+                        <input type="range" class="viewer-zoom-slider" id="viewer-zoom-slider" min="25" max="400" step="5" value="100"
+                               aria-label="拖动缩放" data-i18n-aria="viewer_resize_drag" oninput="viewerZoomSlid(this.value);">
+                    </div>
+                    <button class="viewer-bar-toggle" id="viewer-bar-toggle"
+                            data-i18n-title="viewer_bar_toggle" title="展开或固定这条工具栏"
+                            aria-label="展开或固定这条工具栏" data-i18n-aria="viewer_bar_toggle" aria-expanded="false"
+                            onclick="viewerBarTogglePinned()">
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7"
+                             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M3.6 10.2 8 5.8l4.4 4.4"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 拆分与合并（原来两页并成一页，顶端两个标签：左边合并、右边拆分）
+             这两件工具做的是同一件事的两头——把 PDF 切开和把它拼起来，输入都是一份或几份
+             文件加一个页码/顺序的选择，用户想到的是「整理文件」而不是「选页面」。
+             并成一页还省掉侧边栏一项，收起态的图标条不必排到 13 个。 -->
+        <div class="page" id="page-splitmerge">
+            <div class="card">
+                <h2 data-i18n="split_merge">拆分与合并</h2>
+                <div class="taskbar">
+                    <div class="task-tabs">
+                        <button class="task-tab active" data-pane="splitmerge-merge" onclick="panelSelect('splitmerge', 'merge', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-attach"/></svg></span> <span data-i18n="merge">合并 PDF</span></button>
+                        <button class="task-tab" data-pane="splitmerge-split" onclick="panelSelect('splitmerge', 'split', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-splitmerge"/></svg></span> <span data-i18n="split">拆分 PDF</span></button>
+                    </div>
+                    <button class="btn ghost taskbar-action" id="splitmerge-action" onclick="splitMergePick()"><span><svg class="gi" aria-hidden="true"><use href="#gi-open"/></svg></span> <span data-i18n="choose_pdf">选择 PDF 文件</span></button>
+                </div>
+                <div class="panel-body">
+                        <div class="panel-pane" id="pane-splitmerge-merge">
+                            <div class="row" style="margin-bottom:12px;">
+                                <button class="btn ghost" onclick="addMergeFiles()"><span><svg class="gi" aria-hidden="true"><use href="#gi-add"/></svg></span> <span data-i18n="add_files">添加文件</span></button>
+                                <button class="btn danger" onclick="clearMergeFiles()"><span><svg class="gi" aria-hidden="true"><use href="#gi-trash"/></svg></span> <span data-i18n="clear_all">清空列表</span></button>
+                            </div>
+                            <p class="form-note" data-i18n="merge_hint">拖动行首的 ⋮⋮ 图标可调整顺序，也可使用 ↑ ↓ 按钮；列表中的先后即为合并后的页序。</p>
+                            <div id="merge-list" class="merge-list"></div>
+                            <button class="btn" onclick="doMerge()" data-i18n="start_merge">开始合并</button>
+                            <div class="status" id="merge-status"></div>
+                        </div>
+                        <div class="panel-pane hidden" id="pane-splitmerge-split">
+                            <label data-i18n="split_method">拆分方式：</label>
+                            <div class="row">
+                                <label><input type="radio" name="split-mode" value="every_n" checked onchange="toggleSplitMode()"> <span data-i18n="every_n">每 N 页</span></label>
+                                <label><input type="radio" name="split-mode" value="range" onchange="toggleSplitMode()"> <span data-i18n="extract_range">页码范围</span></label>
+                            </div>
+                            <div id="split-every-n">
+                                <label data-i18n="every_n">每 N 页：</label>
+                                <input type="number" id="split-n" value="1" min="1" style="width:100px;">
+                            </div>
+                            <div id="split-range" class="hidden">
+                                <label data-i18n="range_example">例：1-5, 8, 11-13</label>
+                                <input type="text" id="split-range-input" placeholder="1-5,8,11-13">
+                            </div>
+                            <br>
+                            <button class="btn" onclick="doSplit()" data-i18n="start_split">开始拆分</button>
+                            <div class="status" id="split-status"></div>
+                        </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 印章 / 签名 -->
+        <div class="page" id="page-stamp">
+            <div class="card">
+                <h2 data-i18n="stamp">印章 / 签名</h2>
+                <div class="tool-split">
+                    <div class="tool-controls">
+                        <button class="btn ghost" onclick="selectPdf('stamp')"><span><svg class="gi" aria-hidden="true"><use href="#gi-open"/></svg></span> <span data-i18n="stamp_pdf">选择 PDF</span></button>
+                        <label data-i18n="stamp_source">印章来源：</label>
+                        <div class="row">
+                            <label><input type="radio" name="stamp-source" value="file" checked onchange="toggleStampSource()"> <span data-i18n="image_file">图片文件</span></label>
+                            <label><input type="radio" name="stamp-source" value="draw" onchange="toggleStampSource()"> <span data-i18n="draw_sign">手绘签名</span></label>
+                        </div>
+                        <div id="stamp-file-source">
+                            <button class="btn ghost" onclick="selectStampImage()"><span><svg class="gi" aria-hidden="true"><use href="#gi-image"/></svg></span> <span data-i18n="browse_image">浏览图片</span></button>
+                        </div>
+                        <div id="stamp-draw-source" class="hidden">
+                            <canvas id="sign-canvas" width="288" height="150"></canvas>
+                            <div class="row">
+                                <button class="btn ghost" onclick="clearSign()" data-i18n="clear_draw">清除</button>
+                                <button class="btn ghost" onclick="saveSign()" data-i18n="save_as_stamp">保存为印章</button>
+                            </div>
+                        </div>
+                        <label><span data-i18n="opacity">不透明度</span>：<span id="stamp-opacity-val">80%</span></label>
+                        <input type="range" id="stamp-opacity" min="0" max="100" value="80" oninput="document.getElementById('stamp-opacity-val').innerText=this.value+'%'; updateStampOpacityAndScale();">
+                        <label><span data-i18n="stamp_scale">印章缩放</span>：<span id="stamp-scale-val">100%</span></label>
+                        <input type="range" id="stamp-scale" min="10" max="200" value="100" oninput="document.getElementById('stamp-scale-val').innerText=this.value+'%'; updateStampOpacityAndScale();">
+                        <label data-i18n="page_range">页面范围：</label>
+                        <select id="stamp-page-mode" onchange="toggleStampPageMode()">
+                            <option value="all" data-i18n="all_pages">全部页面</option>
+                            <option value="range" data-i18n="single_multi">指定页</option>
+                        </select>
+                        <input type="text" id="stamp-page-range" placeholder="如 1-5,8" data-i18n-placeholder="pages_example_short" class="hidden">
+                        <br>
+                        <button class="btn" onclick="doStamp()" data-i18n="start_stamp">开始盖印</button>
+                        <div class="status" id="stamp-status"></div>
+                        <!-- 骑缝印（跨页印章）：后端 api/qifeng.py 的 apply_cross_page_seal。
+                             印章图片沿用上面「浏览图片 / 手绘签名」选好的那一张（stampImagePath 同一个），
+                             所以这一块只管参数，不再放第二个选图按钮。
+                             默认整块收起，勾上标题那个开关才展开——左栏是内部滚动的
+                             （.tool-controls overflow-y:auto），展开与否都不动卡片下沿那条齐平线。 -->
+                        <div class="cross-seal-head">
+                            <label><input type="checkbox" id="cross-seal-enable" onchange="toggleCrossSeal()">
+                                <span data-i18n="tool_qf_enable">骑缝印（跨页印章）</span></label>
+                        </div>
+                        <div id="cross-seal-body" class="hidden">
+                            <p class="form-note" data-i18n="tool_qf_hint">一枚章竖着切成几条，贴到每页的右边缘：一页一条，翻页拼起来是一整枚，装订裁边后缝上仍拼得齐。</p>
+                            <label data-i18n="tool_qf_range">页码范围（空 = 整本）：</label>
+                            <input type="text" id="cross-seal-range" placeholder="1-5, 8">
+                            <label data-i18n="tool_qf_group">每组页数（一枚章切几条）：</label>
+                            <input type="number" id="cross-seal-group" value="20" min="1" step="1" class="field-num">
+                            <label><span data-i18n="tool_qf_y">纵向位置</span>：<span id="cross-seal-y-val">50%</span></label>
+                            <input type="range" id="cross-seal-y" min="0" max="100" value="50" step="1" oninput="crossSealYChanged()">
+                            <p class="form-note" data-i18n="tool_qf_y_hint">0 = 贴顶，100 = 贴底，默认居中。</p>
+                            <label data-i18n="tool_qf_width">章宽：</label>
+                            <div class="row">
+                                <label><input type="radio" name="cross-seal-width-mode" value="pt" checked onchange="crossSealWidthModeChanged()"> <span data-i18n="tool_qf_width_abs">按磅（pt）</span></label>
+                                <label><input type="radio" name="cross-seal-width-mode" value="percent" onchange="crossSealWidthModeChanged()"> <span data-i18n="tool_qf_width_pct">按页宽百分比</span></label>
+                            </div>
+                            <!-- 两个独立输入：绝对磅与页宽百分比各占一个框，只把选中的那一档传给后端、另一档传 0。
+                                 合成一个框两种语义是参考实现踩过的那颗坑（同时给会被 width_conflict 拒掉），别再合回去。 -->
+                            <label data-i18n="tool_qf_width_pt">章宽（pt）：</label>
+                            <input type="number" id="cross-seal-width-pt" value="119.1" min="0" step="0.1" class="field-num">
+                            <label data-i18n="tool_qf_width_percent">章宽（占页宽 %）：</label>
+                            <input type="number" id="cross-seal-width-percent" value="20" min="1" max="100" step="1" class="field-num">
+                            <label><input type="checkbox" id="cross-seal-overlap"> <span data-i18n="tool_qf_overlap">压缝重叠（相邻两条多带一段，拼合的缝上不留白）</span></label>
+                            <div id="cross-seal-pw-box" class="hidden">
+                                <label data-i18n="tool_qf_password">文件口令：</label>
+                                <input type="password" id="cross-seal-password">
+                            </div>
+                            <br>
+                            <button class="btn" id="cross-seal-apply" onclick="doCrossSeal()" data-i18n="tool_qf_apply">应用骑缝印</button>
+                            <div class="status" id="cross-seal-status"></div>
+                        </div>
+                    </div>
+                    <div class="tool-preview">
+                        <div class="preview-toolbar">
+                            <button class="page-nav-btn" id="stamp-prev" onclick="previewStep('stamp', -1)">◀</button>
+                            <input type="number" class="page-input" id="stamp-page-input" min="1" value="1" onchange="previewInputPage('stamp')">
+                            <button class="page-nav-btn" id="stamp-next" onclick="previewStep('stamp', 1)">▶</button>
+                            <span class="page-info" id="stamp-page-info"></span>
+                            <span class="toolbar-space"></span>
+                            <label class="zoom-label" data-i18n="preview_zoom">页面大小</label>
+                            <select class="zoom-select" id="stamp-zoom" onchange="previewZoomChanged('stamp')">
+                                <option value="fit" selected data-i18n="preview_fit">适应宽度</option>
+                                <option value="25">25%</option>
+                                <option value="50">50%</option>
+                                <option value="75">75%</option>
+                                <option value="100">100%</option>
+                                <option value="150">150%</option>
+                                <option value="200">200%</option>
+                            </select>
+                        </div>
+                        <div class="page-viewport" id="stamp-viewport"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 文字水印 -->
+        <div class="page" id="page-watermark">
+            <div class="card">
+                <h2 data-i18n="watermark">文字水印</h2>
+                <div class="tool-split">
+                    <div class="tool-controls">
+                        <button class="btn ghost" onclick="selectPdf('watermark')"><span><svg class="gi" aria-hidden="true"><use href="#gi-open"/></svg></span> <span data-i18n="choose_pdf">选择 PDF 文件</span></button>
+                        <label data-i18n="watermark_text">水印文字：</label>
+                        <input type="text" id="wm-text" value="机密" data-i18n-value="wm_default_text">
+                        <!-- LaTeX 标记开关：默认关（说明见 latex_switch_desc），开了才把 \textbf{}、$x^2$ 当标记。
+                             勾选走 onchange：预览按 wmParams() 重取参数，关着和开着出的图不一样 -->
+                        <label><input type="checkbox" id="wm-latex" onchange="loadWatermarkPreview()"> <span data-i18n="latex_switch">按 LaTeX 标记解析</span></label>
+                        <p class="form-note" data-i18n="latex_switch_desc">默认关闭。文字里出现反斜杠的情形很多（文件路径、程序代码），自动按标记解析会改动原有内容；需要排版标记效果时请显式勾选。</p>
+                        <label data-i18n="watermark_color">颜色：</label>
+                        <!-- 不让用户手敲色号：取色器负责选，色号只做只读回显 -->
+                        <div class="color-row">
+                            <input type="color" id="wm-color" value="#FF0000" class="color-input">
+                            <span class="color-hex" id="wm-color-hex">#FF0000</span>
+                            <div class="color-presets" id="wm-color-presets"></div>
+                        </div>
+                        <label><span data-i18n="watermark_opacity">不透明度</span>：<span id="wm-opacity-val">30%</span></label>
+                        <input type="range" id="wm-opacity" min="0" max="100" value="30" oninput="document.getElementById('wm-opacity-val').innerText=this.value+'%'; loadWatermarkPreview();">
+                        <label><span data-i18n="watermark_size">水印大小</span>：<span id="wm-size-val">20pt</span></label>
+                        <input type="range" id="wm-size" min="10" max="80" value="20" oninput="wmSizeChanged();">
+                        <!-- 本机字体（后端 list_fonts）：预览与成品用同一个下拉选出来的族名；
+                             选中的字体后端读不出来时会退回内置字体并把那句话回传，界面必须把它显示出来（见 app.js） -->
+                        <label data-i18n="tool_font_label">字体：</label>
+                        <select id="wm-font" class="font-select" onchange="loadWatermarkPreview()">
+                            <option value="" data-i18n="tool_font_default">软件内置（默认）</option>
+                        </select>
+                        <label><input type="checkbox" id="wm-diagonal" checked onchange="wmDiagonalChanged()"> <span data-i18n="watermark_diagonal">对角线平铺</span></label>
+                        <label id="wm-density-label"><span data-i18n="watermark_density">平铺密度</span>：<span id="wm-density-val">5</span></label>
+                        <input type="range" id="wm-density" min="1" max="10" value="5" step="1" oninput="document.getElementById('wm-density-val').innerText=this.value; loadWatermarkPreview();">
+                        <br>
+                        <button class="btn" onclick="doWatermark()" data-i18n="watermark_apply">应用水印</button>
+                        <div class="status" id="wm-status"></div>
+                    </div>
+                    <div class="tool-preview">
+                        <div class="preview-toolbar">
+                            <button class="page-nav-btn" id="wm-prev" onclick="previewStep('watermark', -1)">◀</button>
+                            <input type="number" class="page-input" id="wm-page-input" min="1" value="1" onchange="previewInputPage('watermark')">
+                            <button class="page-nav-btn" id="wm-next" onclick="previewStep('watermark', 1)">▶</button>
+                            <span class="page-info" id="wm-page-info"></span>
+                            <span class="toolbar-space"></span>
+                            <label class="zoom-label" data-i18n="preview_zoom">页面大小</label>
+                            <select class="zoom-select" id="wm-zoom" onchange="previewZoomChanged('watermark')">
+                                <option value="fit" selected data-i18n="preview_fit">适应宽度</option>
+                                <option value="25">25%</option>
+                                <option value="50">50%</option>
+                                <option value="75">75%</option>
+                                <option value="100">100%</option>
+                                <option value="150">150%</option>
+                                <option value="200">200%</option>
+                            </select>
+                        </div>
+                        <div class="page-viewport" id="wm-viewport"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 内容提取（7.0.1 新增：F09 文字 / F10 HTML / F13 图片）
+             三个工具共用一个 PDF 槽位和一条状态行，顶端标签选工具、下面只出这一件工具的表单；
+             纵向堆三个表单会把卡片撑高，各页圆角框下沿齐平的那条线就保不住了。 -->
+        <div class="page" id="page-extract">
+            <div class="card">
+                <h2 data-i18n="extract">内容提取</h2>
+                <div class="taskbar">
+                    <div class="task-tabs">
+                        <button class="task-tab active" data-pane="extract-text" onclick="panelSelect('extract', 'text', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-text"/></svg></span> <span data-i18n="tool_text">导出文字</span></button>
+                        <button class="task-tab" data-pane="extract-images" onclick="panelSelect('extract', 'images', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-image"/></svg></span> <span data-i18n="tool_images">提取图片</span></button>
+                        <button class="task-tab" data-pane="extract-html" onclick="panelSelect('extract', 'html', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-globe"/></svg></span> <span data-i18n="tool_html">导出 HTML</span></button>
+                        <button class="task-tab" data-pane="extract-ocr" onclick="panelSelect('extract', 'ocr', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-text"/></svg></span> <span>OCR（Beta）</span></button>
+                        <button class="task-tab" data-pane="extract-latex" onclick="panelSelect('extract', 'latex', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-viewer"/></svg></span> <span data-i18n="tool_latex">导出 LaTeX</span></button>
+                    </div>
+                    <button class="btn ghost taskbar-action" id="extract-action" onclick="extractPick()"><span><svg class="gi" aria-hidden="true"><use href="#gi-open"/></svg></span> <span data-i18n="choose_pdf">选择 PDF 文件</span></button>
+                </div>
+                <div class="panel-body">
+                        <div class="panel-pane" id="pane-extract-text">
+                            <label data-i18n="page_range">页面范围：</label>
+                            <input type="text" id="ex-text-range" placeholder="1-5, 8, 11-13">
+                            <p class="form-note" data-i18n="extract_text_note">仅提取 PDF 中已有的文字内容。扫描生成的页面是图片、不含文字，导出的 TXT 会为空，此类文件请改用「提取图片」中的整页渲染方式。</p>
+                            <button class="btn" onclick="doExportText()" data-i18n="start_export_text">导出 TXT</button>
+                        </div>
+                        <div class="panel-pane hidden" id="pane-extract-images">
+                            <label data-i18n="extract_mode">提取方式：</label>
+                            <select id="ex-img-mode" onchange="exImgModeChanged()">
+                                <option value="original" data-i18n="extract_mode_original">提取内嵌原图（不重新编码）</option>
+                                <option value="render" data-i18n="extract_mode_render">整页渲染成 PNG</option>
+                            </select>
+                            <label data-i18n="extract_dpi">渲染清晰度：</label>
+                            <select id="ex-img-dpi">
+                                <option value="96">96 dpi</option>
+                                <option value="150" selected>150 dpi</option>
+                                <option value="300">300 dpi</option>
+                            </select>
+                            <label data-i18n="page_range">页面范围：</label>
+                            <input type="text" id="ex-img-range" placeholder="1-5, 8, 11-13">
+                            <label data-i18n="extract_dir">保存文件夹：</label>
+                            <div class="row">
+                                <button class="btn ghost" onclick="pickExtractDir()"><span><svg class="gi" aria-hidden="true"><use href="#gi-batch"/></svg></span> <span data-i18n="browse_dir">浏览…</span></button>
+                                <span class="path-echo" id="ex-img-dir-echo"></span>
+                            </div>
+                            <p class="form-note" data-i18n="extract_dir_note">留空时保存到 PDF 所在目录下的「文件名_图片」文件夹。同一张图片被多个页面引用时仅导出一次，不重复生成文件。</p>
+                            <button class="btn" onclick="doExtractImages()" data-i18n="start_extract_images">提取图片</button>
+                            <div class="result-box hidden" id="ex-img-result"></div>
+                        </div>
+                        <div class="panel-pane hidden" id="pane-extract-html">
+                            <label><input type="checkbox" id="ex-html-embed" checked> <span data-i18n="extract_embed_images">内嵌图片（单文件自包含）</span></label>
+                            <p class="form-note" data-i18n="extract_html_note">导出生成单个 HTML 文件，图片内嵌在文件之中，复制到其他电脑同样可以正常打开，不会出现失效链接。取消勾选「内嵌图片」可显著减小文件体积，但导出结果中不再包含图片。</p>
+                            <button class="btn" onclick="doExportHtml()" data-i18n="start_export_html">导出 HTML</button>
+                        </div>
+                        <div class="panel-pane hidden" id="pane-extract-ocr">
+                            <div class="ocr-beta-head"><span class="beta-badge">Beta</span>
+                                <span class="form-note" data-i18n="ocr_beta_note">OCR 会把扫描页当成图片识别，结果不保证 100% 准确；首次识别需要加载引擎，请稍候。</span>
+                            </div>
+                            <label data-i18n="page_range">页面范围：</label>
+                            <input type="text" id="ex-ocr-range" placeholder="1-5, 8, 11-13">
+                            <div class="row ocr-pick-row">
+                                <span class="pick-cell">
+                                    <label data-i18n="ocr_quality_label">识别精度：</label>
+                                    <select id="ex-ocr-quality" onchange="ocrWarmupInBackground()">
+                                <option value="fast" selected data-i18n="ocr_q_tiny">快速（tiny，适合预览/粗读）</option>
+                                <option value="balanced" data-i18n="ocr_q_small">均衡（small）</option>
+                                        <option value="accurate" data-i18n="ocr_q_medium">精确（medium，较慢）</option>
+                                    </select>
+                                </span>
+                                <span class="pick-cell">
+                                    <label data-i18n="ocr_lang_label">识别语言：</label>
+                                    <select id="ex-ocr-lang" onchange="ocrWarmupInBackground()">
+                                <option value="auto" selected data-i18n="ocr_lang_auto">自动（中/繁/英/日/法德意西）</option>
+                                <option value="zh-CN">简体中文</option>
+                                <option value="zh-TW">繁體中文</option>
+                                <option value="en">English</option>
+                                <option value="ja">日本語</option>
+                                <option value="ko">한국어</option>
+                                <option value="ru">Русский</option>
+                                <option value="fr">Français</option>
+                                <option value="de">Deutsch</option>
+                                <option value="it">Italiano</option>
+                                        <option value="es">Español</option>
+                                    </select>
+                                </span>
+                            </div>
+                            <label><input type="checkbox" id="ex-ocr-preprocess"> <span data-i18n="ocr_optimize_label">扫描优化（自动裁边 / 纠偏 / 增强）</span></label>
+                            <label><input type="checkbox" id="ex-ocr-layout" checked> <span data-i18n="ocr_layout_label">按位置保留排版（缩进 / 行距 / 分栏）</span></label>
+                            <div class="row">
+                                <button class="btn" onclick="doOcrText()" data-i18n="ocr_run_btn">识别文字</button>
+                                <button class="btn ghost" onclick="doOcrExportText()" data-i18n="ocr_export_text_btn">导出 TXT</button>
+                                <button class="btn ghost" onclick="doOcrExportDocx()" data-i18n="ocr_export_docx_btn">导出 Word</button>
+                                <button class="btn ghost" onclick="doOcrExportXlsx()" data-i18n="ocr_export_xlsx_btn">导出 Excel</button>
+                            </div>
+                            <div class="row">
+                                <button class="btn ghost" onclick="doOcrSearchable()" data-i18n="ocr_searchable_btn">生成可搜索 PDF</button>
+                                <button class="btn ghost" onclick="doOcrSensitive()" data-i18n="ocr_detect_btn">检测敏感信息</button>
+                                <button class="btn ghost" onclick="doOcrScanReport()" data-i18n="ocr_quality_btn">扫描质检</button>
+                                <button class="btn ghost" onclick="doOcrBookmarks()" data-i18n="ocr_bookmarks_btn">识别标题并写入书签</button>
+                            </div>
+                            <p class="form-note" data-i18n="ocr_note">敏感信息只做提示，不会自动改文件。识别语言里只有韩语和俄语另载一份模型；换档位或换语言后第一次识别要加载模型。</p>
+                            <div class="result-box hidden" id="ex-ocr-result"></div>
+                        </div>
+                        <!-- 导出 LaTeX：产出 .tex 源码，和「导出文字/HTML」同一格套路（一个范围框 + 一颗按钮）。
+                             这一格不带预览窗，所以卡片下沿仍由最高的那一格（OCR）决定。 -->
+                        <div class="panel-pane hidden" id="pane-extract-latex">
+                            <label data-i18n="page_range">页面范围：</label>
+                            <input type="text" id="ex-latex-range" placeholder="1-5, 8, 11-13">
+                            <p class="form-note" data-i18n="extract_latex_note">导出的是 LaTeX 源码，保留标题、段落、列表与表格结构；图片只写位置说明，不另存图片文件。PDF 里的公式是排版好的字形，无法反推成数学源码，这类内容按普通文字写出。</p>
+                            <button class="btn" onclick="doExportLatex()" data-i18n="start_export_latex">导出 LaTeX</button>
+                            <div class="result-box hidden" id="ex-latex-result"></div>
+                        </div>
+                </div>
+                <div class="status" id="extract-status"></div>
+            </div>
+        </div>
+
+        <!-- 排版与整理（页面管理 + F14 页码 / F15 页眉页脚 / F16 裁剪 / F17 缩放）
+             工具排成卡片顶端的一排任务标签（照 WPS 那种顶部任务栏的用法）：
+             左边竖一列工具名会把表单挤窄，而这一页现在有 6 件工具，其中页面管理
+             还要占下整屏的缩略图网格，横排的标签条才腾得出那块宽度。 -->
+        <div class="page" id="page-layout">
+            <div class="card">
+                <h2 data-i18n="layout">排版与整理</h2>
+                <div class="taskbar">
+                    <div class="task-tabs">
+                        <button class="task-tab active" data-pane="layout-pm" onclick="panelSelect('layout', 'pm', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-pages"/></svg></span> <span data-i18n="page_manager">页面管理</span></button>
+                        <button class="task-tab" data-pane="layout-number" onclick="panelSelect('layout', 'number', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-numbers"/></svg></span> <span data-i18n="tool_page_number">加页码</span></button>
+                        <button class="task-tab" data-pane="layout-header" onclick="panelSelect('layout', 'header', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-header"/></svg></span> <span data-i18n="tool_header_footer">页眉页脚</span></button>
+                        <button class="task-tab" data-pane="layout-crop" onclick="panelSelect('layout', 'crop', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-splitmerge"/></svg></span> <span data-i18n="tool_crop">裁剪页面</span></button>
+                        <button class="task-tab" data-pane="layout-scale" onclick="panelSelect('layout', 'scale', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-zoom"/></svg></span> <span data-i18n="tool_scale">缩放幅面</span></button>
+                        <button class="task-tab" data-pane="layout-enhance" onclick="panelSelect('layout', 'enhance', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-image"/></svg></span> <span data-i18n="tool_enhance">拍照变清晰</span></button>
+                    </div>
+                    <button class="btn ghost taskbar-action" onclick="selectPdf('layout')"><span><svg class="gi" aria-hidden="true"><use href="#gi-open"/></svg></span> <span data-i18n="choose_pdf">选择 PDF 文件</span></button>
+                </div>
+                <div class="panel-body">
+                        <!-- 页面管理：整块从原来的独立页搬进来，改动只暂存内存、一次写盘的语义没变 -->
+                        <div class="panel-pane" id="pane-layout-pm">
+                            <div class="row" style="margin-bottom:12px;">
+                                <button class="btn ghost" onclick="pmRotateSelected(-90)" data-pm-needs-file data-pm-needs-selection><span>↺</span> <span data-i18n="rotate_ccw">左转 90°</span></button>
+                                <button class="btn ghost" onclick="pmRotateSelected(90)" data-pm-needs-file data-pm-needs-selection><span>↻</span> <span data-i18n="rotate_cw">右转 90°</span></button>
+                                <button class="btn danger" onclick="pmDeleteSelected()" data-pm-needs-file data-pm-needs-selection><span><svg class="gi" aria-hidden="true"><use href="#gi-trash"/></svg></span> <span data-i18n="delete_page">删除选中</span></button>
+                                <button class="btn ghost" onclick="pmExtractSelected()" data-pm-needs-file data-pm-needs-selection><span><svg class="gi" aria-hidden="true"><use href="#gi-splitmerge"/></svg></span> <span data-i18n="extract_page">提取选中</span></button>
+                                <button class="btn ghost" onclick="pmUndo()" data-pm-needs-undo><span>↶</span> <span data-i18n="pm_undo">撤销</span></button>
+                                <button class="btn ghost" onclick="pmResetEdits()" data-pm-needs-dirty><span data-i18n="pm_reset">放弃修改</span></button>
+                                <button class="btn ghost" onclick="pmToggleBookmarks()" data-pm-needs-file><span><svg class="gi" aria-hidden="true"><use href="#gi-bookmark"/></svg></span> <span data-i18n="pm_bookmarks">书签</span></button>
+                                <button class="btn" onclick="pmSave()" data-pm-needs-file data-pm-needs-dirty><span><svg class="gi" aria-hidden="true"><use href="#gi-save"/></svg></span> <span data-i18n="pm_save">保存为新文件</span></button>
+                            </div>
+                            <!-- 书签（F22）收在这块折叠面板里：工具条再塞三个按钮就要占两行，
+                                 而绝大多数时候用户只是来看一眼有没有书签，不必让操作常驻。 -->
+                            <div class="bm-panel hidden" id="pm-bookmarks">
+                                <div class="bm-toolbar">
+                                    <button class="btn ghost" onclick="bmReload()"><span>↻</span> <span data-i18n="bm_reload">重新读取</span></button>
+                                    <button class="btn ghost" onclick="bmExport()"><span><svg class="gi" aria-hidden="true"><use href="#gi-save"/></svg></span> <span data-i18n="bm_export">导出为 JSON</span></button>
+                                    <button class="btn ghost" onclick="bmImport()"><span><svg class="gi" aria-hidden="true"><use href="#gi-import"/></svg></span> <span data-i18n="bm_import">导入书签</span></button>
+                                    <label class="bm-mode"><span data-i18n="bm_import_mode">导入方式</span>
+                                        <select id="bm-import-mode" class="field-sel">
+                                            <option value="replace" selected data-i18n="bm_mode_replace">整树覆盖</option>
+                                            <option value="append" data-i18n="bm_mode_append">追加到原有书签之后</option>
+                                        </select></label>
+                                    <label class="bm-keep"><input type="checkbox" id="bm-skip-invalid"> <span data-i18n="bm_skip_invalid">跳过页码超出范围的条目</span></label>
+                                    <label class="bm-level-label"><span data-i18n="bm_split_level">拆分层级</span>
+                                        <input type="number" id="bm-level" value="1" min="1" class="bm-level"></label>
+                                    <button class="btn ghost" onclick="bmSplit()"><span><svg class="gi" aria-hidden="true"><use href="#gi-splitmerge"/></svg></span> <span data-i18n="bm_split">按书签拆分</span></button>
+                                    <label class="bm-keep"><input type="checkbox" id="bm-keep-outline"> <span data-i18n="bm_keep_outline">分册保留原书签</span></label>
+                                </div>
+                                <p class="bm-note" data-i18n="bm_draft_note">书签内容取自当前文件，页面管理中尚未保存的调整不会包含在内。</p>
+                                <div class="bm-msg" id="bm-msg"></div>
+                                <div class="bm-tree" id="bm-tree"></div>
+                            </div>
+                            <div class="row" style="margin-bottom:10px;">
+                                <label class="pm-dpi-label" for="pm-dpi"><span data-i18n="pm_thumb_dpi">缩略图清晰度</span></label>
+                                <select id="pm-dpi" class="zoom-select" onchange="pmThumbDpiChanged()">
+                                    <option value="64" data-i18n="pm_dpi_64">标清 64dpi</option>
+                                    <option value="96" data-i18n="pm_dpi_96">高清 96dpi</option>
+                                    <option value="128" data-i18n="pm_dpi_128">超清 128dpi</option>
+                                </select>
+                                <span class="pm-dpi-note" data-i18n="pm_thumb_dpi_note">清晰度档位只影响屏幕预览，不会改变导出的成品文件</span>
+                            </div>
+                            <!-- 这两条原本是行内样式的说明文字；统一挂 form-note，
+                                 设置里的「功能说明」关掉时它们也跟着收起 -->
+                            <p class="form-note" data-i18n="pm_hint">
+                                单击缩略图选中页面，可多选；拖动缩略图可调整顺序；右键菜单提供左转、右转、删除与放大预览。以上调整先暂存，可连续多次操作，最后点击「保存为新文件」一次性写出，原文件不会被修改。
+                            </p>
+                            <p class="form-note" data-i18n="pm_keys_hint">
+                                快捷键：Delete 删除选中，Ctrl+Z 撤销，Ctrl+A 全选，方向键移动选中项，Shift+方向键扩展选择，Esc 取消选择，双击缩略图放大查看。
+                            </p>
+                            <div class="pm-draft hidden" id="pm-draft">
+                                <span class="pm-draft-text" id="pm-draft-text"></span>
+                                <button class="btn ghost" id="pm-draft-restore" onclick="pmRestoreDraft()"><span data-i18n="pm_draft_restore">恢复改动</span></button>
+                                <button class="btn ghost" onclick="pmDismissDraft()"><span data-i18n="pm_draft_discard">丢弃</span></button>
+                            </div>
+                            <div class="pm-grid" id="pm-grid"></div>
+                            <div class="status" id="pm-status"></div>
+                        </div>
+                        <!-- 加页码：左边填设置、右边单页预览（F14）
+                             预览必须是「这一页改完的样子」而不是原文：页码会不会压到正文、
+                             九宫格那个角到底在不在留白里，光看数字填不出来。
+                             两栏用 .tool-split（和印章/水印同一套），表单列给得比 320 宽，
+                             因为这一页的说明小字比那两个面板长。 -->
+                        <div class="panel-pane hidden" id="pane-layout-number">
+                            <div class="tool-split lay-split">
+                                <div class="tool-controls">
+                                    <label data-i18n="pn_position">页码位置：</label>
+                                    <!-- 九宫格点选，比下拉框更接近「页面上就在这个角」的直觉 -->
+                                    <div class="pos-grid" id="lay-pn-grid">
+                                        <button class="pos-cell" data-pos="top-left" onclick="posGridPick(this)">↖</button>
+                                        <button class="pos-cell" data-pos="top-center" onclick="posGridPick(this)">↑</button>
+                                        <button class="pos-cell" data-pos="top-right" onclick="posGridPick(this)">↗</button>
+                                        <button class="pos-cell" data-pos="middle-left" onclick="posGridPick(this)">←</button>
+                                        <button class="pos-cell" data-pos="middle-center" onclick="posGridPick(this)">◎</button>
+                                        <button class="pos-cell" data-pos="middle-right" onclick="posGridPick(this)">→</button>
+                                        <button class="pos-cell" data-pos="bottom-left" onclick="posGridPick(this)">↙</button>
+                                        <button class="pos-cell active" data-pos="bottom-center" onclick="posGridPick(this)">↓</button>
+                                        <button class="pos-cell" data-pos="bottom-right" onclick="posGridPick(this)">↘</button>
+                                    </div>
+                                    <label data-i18n="pn_template">页码样式：</label>
+                                    <input type="text" id="lay-pn-template" value="{page}">
+                                    <p class="form-note" data-i18n="pn_template_note">{page} 表示当前页码，{total} 表示总页数，可自由组合，例如「第 {page} 页 / 共 {total} 页」。</p>
+                                    <!-- 同一份开关（latex_switch / latex_switch_desc）：页码模板和其余三处
+                                         可编辑文字口径一致，默认都不解析标记，勾了才按 LaTeX 排版 -->
+                                    <label><input type="checkbox" id="pn-latex"> <span data-i18n="latex_switch">按 LaTeX 标记解析</span></label>
+                                    <p class="form-note" data-i18n="latex_switch_desc">默认关闭。文字里出现反斜杠的情形很多（文件路径、程序代码），自动按标记解析会改动原有内容；需要排版标记效果时请显式勾选。</p>
+                                    <div class="row">
+                                        <div class="field">
+                                            <label data-i18n="pn_number_style">数字样式：</label>
+                                            <select id="lay-pn-style" class="field-sel">
+                                                <option value="arabic" selected data-i18n="style_arabic">阿拉伯数字 1</option>
+                                                <option value="roman" data-i18n="style_roman">罗马数字 I</option>
+                                                <option value="roman_lower" data-i18n="style_roman_lower">小写罗马 i</option>
+                                            </select>
+                                        </div>
+                                        <div class="field">
+                                            <label data-i18n="pn_start">起始页码：</label>
+                                            <input type="number" id="lay-pn-start" value="1" class="field-num">
+                                        </div>
+                                        <div class="field">
+                                            <label data-i18n="font_size">字号（pt）：</label>
+                                            <input type="number" id="lay-pn-size" value="10" min="6" max="72" step="0.5" class="field-num">
+                                        </div>
+                                        <div class="field">
+                                            <label data-i18n="margin_size">页边留白（pt）：</label>
+                                            <input type="number" id="lay-pn-margin" value="28.35" min="0" max="200" step="0.5" class="field-num">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="field field-color">
+                                            <label data-i18n="color">颜色：</label>
+                                            <div class="color-row">
+                                                <input type="color" id="lay-pn-color" value="#000000" onchange="document.getElementById('lay-pn-color-hex').innerText=this.value.toUpperCase()">
+                                                <span class="color-hex" id="lay-pn-color-hex">#000000</span>
+                                            </div>
+                                        </div>
+                                        <div class="field field-wide">
+                                            <label data-i18n="page_range">页面范围：</label>
+                                            <input type="text" id="lay-pn-range" placeholder="1-5, 8, 11-13">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="field">
+                                            <label data-i18n="tool_font_label">字体：</label>
+                                            <select id="lay-pn-font" class="field-sel font-select">
+                                                <option value="" data-i18n="tool_font_default">软件内置（默认）</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <p class="form-note" data-i18n="pn_range_note">页面范围仅决定哪些页面添加页码，编号仍按实际页序计算；如封面不参与编号，可将起始页码设为 0。</p>
+                                    <button class="btn" onclick="doPageNumbers()" data-i18n="start_page_numbers">添加页码</button>
+                                </div>
+                                <div class="tool-preview">
+                                    <div class="preview-toolbar">
+                                        <button class="page-nav-btn" id="lay-number-prev" onclick="previewStep('number', -1)">◀</button>
+                                        <input type="number" class="page-input" id="lay-number-page-input" min="1" value="1" onchange="previewInputPage('number')">
+                                        <button class="page-nav-btn" id="lay-number-next" onclick="previewStep('number', 1)">▶</button>
+                                        <span class="page-info" id="lay-number-page-info"></span>
+                                        <span class="toolbar-space"></span>
+                                        <label class="zoom-label" data-i18n="preview_zoom">页面大小</label>
+                                        <select class="zoom-select" id="lay-number-zoom" onchange="previewZoomChanged('number')">
+                                            <option value="page" data-i18n="preview_page">整页可见</option>
+                                            <option value="fit" selected data-i18n="preview_fit">适应宽度</option>
+                                            <option value="50">50%</option>
+                                            <option value="100">100%</option>
+                                            <option value="150">150%</option>
+                                        </select>
+                                    </div>
+                                    <div class="page-viewport" id="lay-number-viewport"></div>
+                                    <p class="preview-note hidden" id="lay-number-note"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel-pane hidden" id="pane-layout-header">
+                            <div class="tool-split lay-split">
+                                <div class="tool-controls">
+                                    <label data-i18n="hf_header">页眉文字：</label>
+                                    <input type="text" id="lay-hf-header" placeholder="例如：公司机密" data-i18n-placeholder="pw_example_hint">
+                                    <label data-i18n="hf_footer">页脚文字：</label>
+                                    <input type="text" id="lay-hf-footer" placeholder="例如：第 {page} 页 / 共 {total} 页" data-i18n-placeholder="header_example_pages">
+                                    <label><input type="checkbox" id="lay-hf-even" onchange="layEvenChanged()"> <span data-i18n="hf_even">奇偶页使用不同文字（适用于双面打印）</span></label>
+                                    <div id="lay-hf-even-box" class="hidden">
+                                        <label data-i18n="hf_even_header">偶数页页眉：</label>
+                                        <input type="text" id="lay-hf-even-header">
+                                        <label data-i18n="hf_even_footer">偶数页页脚：</label>
+                                        <input type="text" id="lay-hf-even-footer">
+                                    </div>
+                                    <!-- 奇偶页那两项也算「可编辑文字」，所以开关放在四格文字框之后、参数之前 -->
+                                    <label><input type="checkbox" id="hf-latex"> <span data-i18n="latex_switch">按 LaTeX 标记解析</span></label>
+                                    <p class="form-note" data-i18n="latex_switch_desc">默认关闭。文字里出现反斜杠的情形很多（文件路径、程序代码），自动按标记解析会改动原有内容；需要排版标记效果时请显式勾选。</p>
+                                    <div class="row">
+                                        <div class="field">
+                                            <label data-i18n="hf_align">对齐：</label>
+                                            <select id="lay-hf-align" class="field-sel">
+                                                <option value="left" data-i18n="align_left">靠左</option>
+                                                <option value="center" selected data-i18n="align_center">居中</option>
+                                                <option value="right" data-i18n="align_right">靠右</option>
+                                            </select>
+                                        </div>
+                                        <div class="field">
+                                            <label data-i18n="font_size">字号（pt）：</label>
+                                            <input type="number" id="lay-hf-size" value="9" min="6" max="72" step="0.5" class="field-num">
+                                        </div>
+                                        <div class="field">
+                                            <label data-i18n="margin_size">页边留白（pt）：</label>
+                                            <input type="number" id="lay-hf-margin" value="28.35" min="0" max="200" step="0.5" class="field-num">
+                                        </div>
+                                    </div>
+                                    <label data-i18n="color">颜色：</label>
+                                    <div class="color-row">
+                                        <input type="color" id="lay-hf-color" value="#000000" onchange="document.getElementById('lay-hf-color-hex').innerText=this.value.toUpperCase()">
+                                        <span class="color-hex" id="lay-hf-color-hex">#000000</span>
+                                    </div>
+                                    <div class="row">
+                                        <div class="field">
+                                            <label data-i18n="tool_font_label">字体：</label>
+                                            <select id="lay-hf-font" class="field-sel font-select">
+                                                <option value="" data-i18n="tool_font_default">软件内置（默认）</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <label data-i18n="page_range">页面范围：</label>
+                                    <input type="text" id="lay-hf-range" placeholder="1-5, 8, 11-13">
+                                    <p class="form-note" data-i18n="hf_note">页眉、页脚写入页面留白区域，留白不足时提示无法容纳，不会覆盖正文。勾选奇偶页选项后，第 2、4、6 页按偶数页处理，适用于双面打印的版式。</p>
+                                    <button class="btn" onclick="doHeaderFooter()" data-i18n="start_header_footer">应用页眉页脚</button>
+                                </div>
+                                <div class="tool-preview">
+                                    <div class="preview-toolbar">
+                                        <button class="page-nav-btn" id="lay-header-prev" onclick="previewStep('header', -1)">◀</button>
+                                        <input type="number" class="page-input" id="lay-header-page-input" min="1" value="1" onchange="previewInputPage('header')">
+                                        <button class="page-nav-btn" id="lay-header-next" onclick="previewStep('header', 1)">▶</button>
+                                        <span class="page-info" id="lay-header-page-info"></span>
+                                        <span class="toolbar-space"></span>
+                                        <label class="zoom-label" data-i18n="preview_zoom">页面大小</label>
+                                        <select class="zoom-select" id="lay-header-zoom" onchange="previewZoomChanged('header')">
+                                            <option value="page" data-i18n="preview_page">整页可见</option>
+                                            <option value="fit" selected data-i18n="preview_fit">适应宽度</option>
+                                            <option value="50">50%</option>
+                                            <option value="100">100%</option>
+                                            <option value="150">150%</option>
+                                        </select>
+                                    </div>
+                                    <div class="page-viewport" id="lay-header-viewport"></div>
+                                    <p class="preview-note hidden" id="lay-header-note"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel-pane hidden" id="pane-layout-crop">
+                            <div class="tool-split lay-split">
+                                <div class="tool-controls">
+                                    <label data-i18n="crop_preset">裁剪到幅面：</label>
+                                    <select id="lay-crop-size" onchange="layCropSizeChanged()">
+                                        <option value="" data-i18n="crop_manual">手填裁剪框（pt）</option>
+                                        <option value="A4">A4</option>
+                                        <option value="A4横向" data-i18n="paper_a4_landscape">A4 横向</option>
+                                        <option value="A3">A3</option>
+                                        <option value="A5">A5</option>
+                                        <option value="Letter">Letter</option>
+                                    </select>
+                                    <div id="lay-crop-manual">
+                                        <label data-i18n="crop_rect">裁剪框（左上 x、y，右下 x、y，单位 pt）：</label>
+                                        <div class="row rect-row">
+                                            <input type="number" id="lay-crop-x0" value="0" step="0.5" class="field-num">
+                                            <input type="number" id="lay-crop-y0" value="0" step="0.5" class="field-num">
+                                            <input type="number" id="lay-crop-x1" value="595" step="0.5" class="field-num">
+                                            <input type="number" id="lay-crop-y1" value="842" step="0.5" class="field-num">
+                                        </div>
+                                        <div class="row">
+                                            <button class="btn ghost" onclick="layLoadPageSize()"><span><svg class="gi" aria-hidden="true"><use href="#gi-ruler"/></svg></span> <span data-i18n="crop_load_size">读取本页尺寸并填满</span></button>
+                                            <span class="path-echo" id="lay-crop-info"></span>
+                                        </div>
+                                    </div>
+                                    <label data-i18n="page_range">页面范围：</label>
+                                    <input type="text" id="lay-crop-range" placeholder="1-5, 8, 11-13">
+                                    <p class="form-note" data-i18n="crop_note">裁剪只改变页面的可见范围，被裁出的内容仍保留在文件中；如需彻底删除，请使用「安全与整理 → 敏感信息涂黑」。坐标以预览画面所见的页面为准，页面旋转后同样如此。</p>
+                                    <button class="btn" onclick="doCrop()" data-i18n="start_crop">开始裁剪</button>
+                                </div>
+                                <div class="tool-preview">
+                                    <div class="preview-toolbar">
+                                        <button class="page-nav-btn" id="lay-crop-prev" onclick="previewStep('crop', -1)">◀</button>
+                                        <input type="number" class="page-input" id="lay-crop-page-input" min="1" value="1" onchange="previewInputPage('crop')">
+                                        <button class="page-nav-btn" id="lay-crop-next" onclick="previewStep('crop', 1)">▶</button>
+                                        <span class="page-info" id="lay-crop-page-info"></span>
+                                        <span class="toolbar-space"></span>
+                                        <label class="zoom-label" data-i18n="preview_zoom">页面大小</label>
+                                        <select class="zoom-select" id="lay-crop-zoom" onchange="previewZoomChanged('crop')">
+                                            <option value="page" data-i18n="preview_page">整页可见</option>
+                                            <option value="fit" selected data-i18n="preview_fit">适应宽度</option>
+                                            <option value="50">50%</option>
+                                            <option value="100">100%</option>
+                                            <option value="150">150%</option>
+                                        </select>
+                                    </div>
+                                    <div class="page-viewport" id="lay-crop-viewport"></div>
+                                    <p class="preview-note hidden" id="lay-crop-note"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel-pane hidden" id="pane-layout-scale">
+                            <div class="tool-split lay-split">
+                                <div class="tool-controls">
+                                    <label data-i18n="scale_mode">缩放方式：</label>
+                                    <select id="lay-scale-mode" onchange="layScaleModeChanged()">
+                                        <option value="size" data-i18n="scale_to_size">统一到指定幅面</option>
+                                        <option value="percent" data-i18n="scale_by_percent">按百分比缩放</option>
+                                    </select>
+                                    <div id="lay-scale-size-box">
+                                        <select id="lay-scale-size">
+                                            <option value="A4" selected>A4</option>
+                                            <option value="A4横向" data-i18n="paper_a4_landscape">A4 横向</option>
+                                            <option value="A3">A3</option>
+                                            <option value="A5">A5</option>
+                                            <option value="Letter">Letter</option>
+                                        </select>
+                                        <p class="form-note" data-i18n="scale_size_note">原页面按比例置于新幅面之中，四周保留空白，版面不会被拉伸变形。</p>
+                                    </div>
+                                    <div id="lay-scale-percent-box" class="hidden">
+                                        <label data-i18n="scale_percent">缩放比例（%）：</label>
+                                        <input type="number" id="lay-scale-percent" value="150" min="10" max="400" step="5" style="width:100px;">
+                                    </div>
+                                    <label data-i18n="page_range">页面范围：</label>
+                                    <input type="text" id="lay-scale-range" placeholder="1-5, 8, 11-13">
+                                    <p class="form-note" data-i18n="scale_range_note">范围以外的页面按原有尺寸写入成品文件，不会被删除。</p>
+                                    <button class="btn" onclick="doScale()" data-i18n="start_scale">开始缩放</button>
+                                </div>
+                                <div class="tool-preview">
+                                    <div class="preview-toolbar">
+                                        <button class="page-nav-btn" id="lay-scale-prev" onclick="previewStep('scale', -1)">◀</button>
+                                        <input type="number" class="page-input" id="lay-scale-page-input" min="1" value="1" onchange="previewInputPage('scale')">
+                                        <button class="page-nav-btn" id="lay-scale-next" onclick="previewStep('scale', 1)">▶</button>
+                                        <span class="page-info" id="lay-scale-page-info"></span>
+                                        <span class="toolbar-space"></span>
+                                        <label class="zoom-label" data-i18n="preview_zoom">页面大小</label>
+                                        <select class="zoom-select" id="lay-scale-zoom" onchange="previewZoomChanged('scale')">
+                                            <option value="page" data-i18n="preview_page">整页可见</option>
+                                            <option value="fit" selected data-i18n="preview_fit">适应宽度</option>
+                                            <option value="50">50%</option>
+                                            <option value="100">100%</option>
+                                            <option value="150">150%</option>
+                                        </select>
+                                    </div>
+                                    <div class="page-viewport" id="lay-scale-viewport"></div>
+                                    <p class="preview-note hidden" id="lay-scale-note"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 拍照变清晰：手机拍的文件页往往带阴影、发灰、四周拍到桌面，
+                             这一格把它处理成扫描件的样子（成品另存，原文件不动） -->
+                        <div class="panel-pane hidden" id="pane-layout-enhance">
+                            <div class="tool-split">
+                                <div class="tool-controls">
+                                    <label data-i18n="enhance_mode">处理效果：</label>
+                                    <select id="en-mode" onchange="enhancePreview()">
+                                        <option value="magic" selected data-i18n="enhance_mode_magic">彩色增强（去阴影、提亮底色，保留彩色）</option>
+                                        <option value="gray" data-i18n="enhance_mode_gray">灰度（去阴影后转灰，正文最清楚）</option>
+                                        <option value="binary" data-i18n="enhance_mode_binary">黑白（纯黑字白底，最像打印件）</option>
+                                    </select>
+                                    <div class="row enhance-checks">
+                                        <label><input type="checkbox" id="en-perspective" onchange="enhancePreview()"> <span data-i18n="enhance_perspective">摆正斜拍</span></label>
+                                        <label><input type="checkbox" id="en-deskew" onchange="enhancePreview()"> <span data-i18n="enhance_deskew">自动纠偏</span></label>
+                                        <label><input type="checkbox" id="en-crop" onchange="enhancePreview()"> <span data-i18n="enhance_crop">裁掉背景</span></label>
+                                        <label><input type="checkbox" id="en-merge"> <span data-i18n="enhance_merge">照片合成一份 PDF</span></label>
+                                    </div>
+                                    <label data-i18n="page_range">页面范围：</label>
+                                    <input type="text" id="en-range" placeholder="1-5, 8, 11-13">
+                                    <p class="form-note" data-i18n="enhance_note">处理的是「拍照件」：整页照片去阴影、白平衡、增强对比度后另存。原文件不会被改动。</p>
+                                    <div class="row">
+                                        <button class="btn" onclick="doEnhancePdf()" data-i18n="enhance_run_btn">增强并另存 PDF</button>
+                                        <button class="btn ghost" onclick="chooseEnhanceImages()" data-i18n="enhance_pick_images">选图片…</button>
+                                        <button class="btn ghost" onclick="doEnhanceImages()" data-i18n="enhance_run_images">增强图片</button>
+                                    </div>
+                                    <p class="form-note" id="en-image-echo"></p>
+                                </div>
+                                <div class="tool-preview">
+                                    <div class="preview-toolbar">
+                                        <button class="page-nav-btn" onclick="enhanceStep(-1)">◀</button>
+                                        <span class="page-info" id="en-page-info"></span>
+                                        <button class="page-nav-btn" onclick="enhanceStep(1)">▶</button>
+                                        <span class="toolbar-space"></span>
+                                        <button class="btn ghost" onclick="enhancePreview()" data-i18n="enhance_preview_btn">看效果对比</button>
+                                    </div>
+                                    <div class="enhance-compare" id="en-compare">
+                                        <figure class="enhance-shot"><img id="en-before" alt=""><figcaption data-i18n="enhance_before">原来</figcaption></figure>
+                                        <figure class="enhance-shot"><img id="en-after" alt=""><figcaption data-i18n="enhance_after">处理后</figcaption></figure>
+                                    </div>
+                                    <p class="preview-note hidden" id="en-note"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <div class="status" id="layout-status"></div>
+            </div>
+        </div>
+
+        <!-- 压缩 -->
+        <div class="page" id="page-compress">
+            <div class="card">
+                <h2 data-i18n="compress">压缩 PDF</h2>
+                <button class="btn ghost" onclick="selectPdf('compress')"><span><svg class="gi" aria-hidden="true"><use href="#gi-open"/></svg></span> <span data-i18n="choose_pdf">选择 PDF 文件</span></button>
+                <label data-i18n="compression_level">压缩级别：</label>
+                <select id="compress-level">
+                    <option value="light" data-i18n="light">轻度</option>
+                    <option value="medium" selected data-i18n="medium">中度</option>
+                    <option value="heavy" data-i18n="heavy">重度</option>
+                </select>
+                <br>
+                <button class="btn" onclick="doCompress()" data-i18n="start_compress">开始压缩</button>
+                <div class="status" id="compress-status"></div>
+            </div>
+        </div>
+
+        <!-- 批量 -->
+        <div class="page" id="page-batch">
+            <div class="card">
+                <h2 data-i18n="batch">批量处理</h2>
+                <button class="btn ghost" onclick="addBatchFiles()"><span><svg class="gi" aria-hidden="true"><use href="#gi-add"/></svg></span> <span data-i18n="add_files">添加文件</span></button>
+                <label data-i18n="batch_op_label">选择操作：</label>
+                <select id="batch-op" onchange="toggleBatchOptions()">
+                    <option value="split" data-i18n="batch_split">批量拆分</option>
+                    <option value="convert" data-i18n="batch_convert">批量转换</option>
+                    <option value="compress" data-i18n="batch_compress">批量压缩</option>
+                </select>
+                <div id="batch-split-option">
+                    <label data-i18n="batch_n_label">每 N 页（拆分时）：</label>
+                    <input type="number" id="batch-n" value="1" min="1" style="width:100px;">
+                </div>
+                <div id="batch-convert-option" class="hidden">
+                    <label data-i18n="batch_format_label">目标格式（转换时）：</label>
+                    <select id="batch-format">
+                        <option value="docx">Word</option>
+                        <option value="xlsx">Excel</option>
+                        <option value="pptx">PowerPoint</option>
+                        <option value="tex">LaTeX</option>
+                        <option value="png">PNG</option>
+                        <option value="jpeg">JPEG</option>
+                    </select>
+                </div>
+                <div id="batch-compress-option" class="hidden">
+                    <label data-i18n="batch_compress_level_label">压缩级别（压缩时）：</label>
+                    <select id="batch-compress-level">
+                        <option value="light" data-i18n="light">轻度</option>
+                        <option value="medium" selected data-i18n="medium">中度</option>
+                        <option value="heavy" data-i18n="heavy">重度</option>
+                    </select>
+                    <p class="form-note" data-i18n="batch_compress_note">压缩结果保存在各原文件所在目录，文件名以「_压缩」结尾，原文件保持不变。压缩后文字、书签与链接均正常保留；以文字为主或已高度压缩的文件，体积可能变化不大，结果列表中会逐项说明。</p>
+                </div>
+                <br>
+                <button class="btn" id="batch-start" onclick="doBatch()" data-i18n="start_batch_split">开始批量拆分</button>
+                <div class="status" id="batch-status"></div>
+            </div>
+        </div>
+
+        <!-- 安全与整理（7.0.1 新增：F18 涂黑 / F19 敏感信息检测 / F20 清理隐藏信息 / F21 权限限制，
+             并把原来独立的「加密 / 解密」页并进来当第四格标签）
+             检测和涂黑合成一个面板：检测出来的清单就是涂黑的输入，分成两个面板要用户自己抄页码坐标。 -->
+        <div class="page" id="page-security">
+            <div class="card">
+                <h2 data-i18n="security">安全与整理</h2>
+                <div class="taskbar">
+                    <div class="task-tabs">
+                        <button class="task-tab active" data-pane="security-redact" onclick="panelSelect('security', 'redact', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-redact"/></svg></span> <span data-i18n="tool_redact">敏感信息涂黑</span></button>
+                        <button class="task-tab" data-pane="security-clean" onclick="panelSelect('security', 'clean', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-broom"/></svg></span> <span data-i18n="tool_clean">清理隐藏信息</span></button>
+                        <button class="task-tab" data-pane="security-perms" onclick="panelSelect('security', 'perms', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-ban"/></svg></span> <span data-i18n="tool_perms">权限限制</span></button>
+                        <button class="task-tab" data-pane="security-encrypt" onclick="panelSelect('security', 'encrypt', event)"><span><svg class="gi" aria-hidden="true"><use href="#gi-lock"/></svg></span> <span data-i18n="encrypt">加密 / 解密</span></button>
+                    </div>
+                    <button class="btn ghost taskbar-action" onclick="selectPdf('security')"><span><svg class="gi" aria-hidden="true"><use href="#gi-open"/></svg></span> <span data-i18n="choose_pdf">选择 PDF 文件</span></button>
+                </div>
+                <div class="panel-body">
+                        <div class="panel-pane" id="pane-security-redact">
+                            <label data-i18n="detect_kinds">要找的信息：</label>
+                            <div class="check-grid">
+                                <label class="check-item"><input type="checkbox" class="sec-kind" value="id_card" checked> <span data-i18n="kind_id_card">18 位身份证号</span></label>
+                                <label class="check-item"><input type="checkbox" class="sec-kind" value="phone" checked> <span data-i18n="kind_phone">手机号</span></label>
+                                <label class="check-item"><input type="checkbox" class="sec-kind" value="id_card_15"> <span data-i18n="kind_id_card_15">15 位老身份证（仅提示）</span></label>
+                                <label class="check-item"><input type="checkbox" class="sec-kind" value="bank_card"> <span data-i18n="kind_bank_card">银行卡号（通过校验位，列为疑似）</span></label>
+                            </div>
+                            <label data-i18n="page_range">页面范围：</label>
+                            <input type="text" id="sec-detect-range" placeholder="1-5, 8, 11-13">
+                            <div class="row">
+                                <button class="btn ghost" onclick="detectSensitive()"><span><svg class="gi" aria-hidden="true"><use href="#gi-search"/></svg></span> <span data-i18n="start_detect">开始检测</span></button>
+                                <button class="btn ghost" onclick="stopDetect()"><span>⏹</span> <span data-i18n="stop_detect">停止</span></button>
+                            </div>
+                            <p class="form-note" data-i18n="detect_note">检测按页面顺序进行；点击「停止」后不再继续，已找到的结果仍然保留。默认仅勾选可校验的两类信息，15 位老式身份证号与银行卡号缺少可靠校验，勾选后可能检出较多无关内容，请结合结果自行确认。</p>
+                            <div class="hit-list hidden" id="sec-hits"></div>
+                            <div class="row hidden" id="sec-hits-bar">
+                                <button class="btn ghost" onclick="hitSelectAll(true)"><span data-i18n="hit_all">全选</span></button>
+                                <button class="btn ghost" onclick="hitSelectAll(false)"><span data-i18n="hit_none">全不选</span></button>
+                            </div>
+                            <label data-i18n="manual_rect">手动加一处（第几页 + 左上 x、y + 右下 x、y，单位 pt）：</label>
+                            <div class="row rect-row">
+                                <input type="number" id="sec-manual-page" min="1" placeholder="页" data-i18n-placeholder="unit_page" class="field-num">
+                                <input type="number" id="sec-manual-x0" placeholder="x0" step="0.5" class="field-num">
+                                <input type="number" id="sec-manual-y0" placeholder="y0" step="0.5" class="field-num">
+                                <input type="number" id="sec-manual-x1" placeholder="x1" step="0.5" class="field-num">
+                                <input type="number" id="sec-manual-y1" placeholder="y1" step="0.5" class="field-num">
+                                <button class="btn ghost" onclick="addManualHit()"><span><svg class="gi" aria-hidden="true"><use href="#gi-add"/></svg></span> <span data-i18n="hit_add">加入清单</span></button>
+                            </div>
+                            <label data-i18n="redact_image">矩形压到图片时：</label>
+                            <select id="sec-image-mode">
+                                <option value="2" selected data-i18n="image_partial">仅涂白重叠部分（扫描件建议选用）</option>
+                                <option value="1" data-i18n="image_whole">连同整张图片一并删除</option>
+                                <option value="0" data-i18n="image_none">忽略图片，仅删除文字</option>
+                            </select>
+                            <p class="form-note" data-i18n="redact_note">涂黑会删除选中区域的文字与图像内容，保存后程序重新打开成品逐项复核，仍能检出原文时按失败处理。结果另存为新文件，原文件保持不变。</p>
+                            <button class="btn danger" onclick="doRedact()" data-i18n="start_redact">涂黑选中项</button>
+                        </div>
+                        <div class="panel-pane hidden" id="pane-security-clean">
+                            <label data-i18n="clean_items">清理这些：</label>
+                            <div class="check-grid">
+                                <label class="check-item"><input type="checkbox" id="sec-clean-meta" checked> <span data-i18n="clean_metadata">文档元数据（标题、作者、生成软件等）</span></label>
+                                <label class="check-item"><input type="checkbox" id="sec-clean-xmp"> <span data-i18n="clean_xmp">XMP 描述块</span></label>
+                                <label class="check-item"><input type="checkbox" id="sec-clean-att"> <span data-i18n="clean_attachments">内嵌附件</span></label>
+                                <label class="check-item"><input type="checkbox" id="sec-clean-js"> <span data-i18n="clean_scripts">JavaScript 脚本</span></label>
+                            </div>
+                            <p class="form-note" data-i18n="clean_note">清理会同时移除文件中遗留的历史版本内容，保存后逐项核对页数与页面文字，不一致时按失败处理。书签（目录）可能因此发生变化，建议清理前先导出书签备份。</p>
+                            <button class="btn" onclick="doCleanHidden()" data-i18n="start_clean">清理并另存</button>
+                            <div class="result-box hidden" id="sec-clean-result"></div>
+                        </div>
+                        <div class="panel-pane hidden" id="pane-security-perms">
+                            <label data-i18n="perm_deny">打开之后不许做的事：</label>
+                            <div class="check-grid">
+                                <label class="check-item"><input type="checkbox" class="sec-perm" value="print" checked> <span data-i18n="perm_print">打印</span></label>
+                                <label class="check-item"><input type="checkbox" class="sec-perm" value="copy" checked> <span data-i18n="perm_copy">复制文字图片</span></label>
+                                <label class="check-item"><input type="checkbox" class="sec-perm" value="modify"> <span data-i18n="perm_modify">修改页面</span></label>
+                                <label class="check-item"><input type="checkbox" class="sec-perm" value="annotate"> <span data-i18n="perm_annotate">加批注</span></label>
+                                <label class="check-item"><input type="checkbox" class="sec-perm" value="forms"> <span data-i18n="perm_forms">填写表单</span></label>
+                                <label class="check-item"><input type="checkbox" class="sec-perm" value="assemble"> <span data-i18n="perm_assemble">拆装页面</span></label>
+                                <label class="check-item"><input type="checkbox" class="sec-perm" value="print_hq"> <span data-i18n="perm_print_hq">高分辨率打印</span></label>
+                                <label class="check-item"><input type="checkbox" class="sec-perm" value="accessibility"> <span data-i18n="perm_accessibility">屏幕阅读器朗读</span></label>
+                            </div>
+                            <label data-i18n="perm_user_pw">打开口令（留空表示任何人都可打开，仅限制操作）：</label>
+                            <input type="password" id="sec-perm-user" placeholder="留空即只限权限" data-i18n-placeholder="perm_empty_hint">
+                            <label data-i18n="perm_owner_pw">权限口令（修改权限时需要输入）：</label>
+                            <input type="password" id="sec-perm-owner" placeholder="留空会自动用打开口令或内置口令" data-i18n-placeholder="enc_owner_empty_hint">
+                            <label data-i18n="perm_engine">加密引擎：</label>
+                            <select id="sec-perm-engine">
+                                <option value="fitz" selected data-i18n="perm_engine_fitz">PyMuPDF（仅添加权限限制，同时清理冗余内容）</option>
+                                <option value="pypdf" data-i18n="perm_engine_pypdf">pypdf（重建文档结构，处理时间较长，体积略有增加）</option>
+                            </select>
+                            <p class="form-note" data-i18n="perm_note">权限限制由阅读器执行，遵循规范的阅读器会按设置禁用相应操作，不符合规范的软件可能忽略这些限制，因此它不能替代内容删除。涉及保密内容请改用「敏感信息涂黑」。</p>
+                            <button class="btn" onclick="doPermissions()" data-i18n="start_perms">应用权限限制</button>
+                        </div>
+                        <div class="panel-pane hidden" id="pane-security-encrypt">
+                            <label data-i18n="user_password">打开密码：</label>
+                            <input type="password" id="enc-user-pw" placeholder="Password">
+                            <label data-i18n="owner_password">权限密码：</label>
+                            <input type="password" id="enc-owner-pw" placeholder="Owner Password">
+                            <p class="form-note" data-i18n="encrypt_note">加密作用于整个文件，打开时须输入密码；「权限限制」只限制阅读器中的操作，不锁定文件本身。两者均另存为新文件，原文件保持不变。解密时输入该文件当前使用的密码，输出去除口令的新文件。口令遗失后无法恢复，请确认可长期保存后再行设置。</p>
+                            <div class="row">
+                                <button class="btn" onclick="doEncrypt()"><span><svg class="gi" aria-hidden="true"><use href="#gi-lock"/></svg></span> <span data-i18n="start_encrypt">加密</span></button>
+                                <button class="btn" onclick="doDecrypt()"><span><svg class="gi" aria-hidden="true"><use href="#gi-unlock"/></svg></span> <span data-i18n="start_decrypt">解密</span></button>
+                            </div>
+                            <div class="status" id="encrypt-status"></div>
+                        </div>
+                </div>
+                <div class="status" id="security-status"></div>
+            </div>
+        </div>
+
+        <!-- 格式转换 -->
+        <div class="page" id="page-convert">
+            <div class="card">
+                <h2 data-i18n="convert">格式转换</h2>
+                <label data-i18n="convert_direction">转换方向：</label>
+                <select id="convert-direction" onchange="toggleConvertDirection()">
+                    <option value="pdf" selected data-i18n="dir_pdf_out">PDF 转其他格式</option>
+                    <option value="images" data-i18n="dir_images_in">图片转 PDF</option>
+                    <option value="text" data-i18n="dir_text_in">文本转 PDF</option>
+                    <option value="latex" data-i18n="dir_latex_in">LaTeX (.tex) → PDF</option>
+                </select>
+                <div id="convert-pdf-block">
+                    <button class="btn ghost" onclick="selectPdf('convert')"><span><svg class="gi" aria-hidden="true"><use href="#gi-open"/></svg></span> <span data-i18n="choose_pdf">选择 PDF 文件</span></button>
+                    <label data-i18n="target_format">目标格式：</label>
+                    <select id="convert-format">
+                        <option value="docx">Word (.docx)</option>
+                        <option value="xlsx">Excel (.xlsx)</option>
+                        <option value="pptx">PowerPoint (.pptx)</option>
+                        <option value="png">PNG</option>
+                        <option value="jpeg">JPEG</option>
+                    </select>
+                    <br>
+                    <button class="btn" onclick="doConvert()" data-i18n="start_convert">开始转换</button>
+                </div>
+                <div id="convert-images-block" class="hidden">
+                    <div class="row">
+                        <button class="btn ghost" onclick="pickImages()"><span><svg class="gi" aria-hidden="true"><use href="#gi-image"/></svg></span> <span data-i18n="add_images">添加图片</span></button>
+                        <button class="btn danger" onclick="clearImages()"><span><svg class="gi" aria-hidden="true"><use href="#gi-trash"/></svg></span> <span data-i18n="clear_all">清空列表</span></button>
+                    </div>
+                    <p class="form-note" data-i18n="images_hint">支持一次选择多张图片；生成 PDF 的页面顺序与此列表顺序一致，可拖动行首的 ⋮⋮ 图标调整。</p>
+                    <div id="image-list" class="merge-list"></div>
+                    <label data-i18n="target_size">页面幅面：</label>
+                    <select id="images-size">
+                        <option value="a4" selected>A4</option>
+                        <option value="a3">A3</option>
+                        <option value="a5">A5</option>
+                        <option value="letter">Letter</option>
+                        <option value="fit" data-i18n="size_fit">按图片自身尺寸</option>
+                    </select>
+                    <label><input type="checkbox" id="images-aspect" checked> <span data-i18n="keep_aspect">等比缩放，不拉伸变形</span></label>
+                    <br>
+                    <button class="btn" onclick="doImagesToPdf()" data-i18n="start_images_pdf">生成 PDF</button>
+                </div>
+                <div id="convert-text-block" class="hidden">
+                    <button class="btn ghost" onclick="selectTxtFile()"><span><svg class="gi" aria-hidden="true"><use href="#gi-viewer"/></svg></span> <span data-i18n="choose_txt">选择文本文件</span></button>
+                    <label data-i18n="txt_font_size">正文字号（pt）：</label>
+                    <input type="number" id="text-size" value="11" min="6" max="72" style="width:100px;">
+                    <label data-i18n="txt_margin">页边距（pt）：</label>
+                    <input type="number" id="text-margin" value="56.7" min="0" max="200" step="0.1" style="width:100px;">
+                    <label data-i18n="tool_font_label">字体：</label>
+                    <select id="text-font" class="font-select">
+                        <option value="" data-i18n="tool_font_default">软件内置（默认）</option>
+                    </select>
+                    <label><input type="checkbox" id="text-latex"> <span data-i18n="latex_switch">按 LaTeX 标记解析</span></label>
+                    <p class="form-note" data-i18n="latex_switch_desc">默认关闭。文字里出现反斜杠的情形很多（文件路径、程序代码），自动按标记解析会改动原有内容；需要排版标记效果时请显式勾选。</p>
+                    <p class="form-note" data-i18n="txt_hint">自动识别文本编码（UTF-8 / GBK），超出页宽的文字自动换行，不会写出页面之外。</p>
+                    <br>
+                    <button class="btn" onclick="doTextToPdf()" data-i18n="start_text_pdf">生成 PDF</button>
+                </div>
+                <!-- LaTeX → PDF：这一格比另外三个方向多两样东西——「先检查这份文件」的预检，
+                     和「本软件支持的 LaTeX 范围」的展开区。展开区默认收起（不占版面），内容取自
+                     get_latex_capabilities()，与解析器用的是同一批常量，代码扩了说明跟着变。 -->
+                <div id="convert-latex-block" class="hidden">
+                    <div class="row">
+                        <button class="btn ghost" onclick="selectTexFile()"><span><svg class="gi" aria-hidden="true"><use href="#gi-viewer"/></svg></span> <span data-i18n="choose_tex">选择 LaTeX 文件（.tex）</span></button>
+                        <span class="path-echo" id="latex-tex-echo"></span>
+                    </div>
+                    <div class="row">
+                        <button class="btn ghost" onclick="doCheckTex()" data-i18n-aria="check_tex"><span><svg class="gi" aria-hidden="true"><use href="#gi-search"/></svg></span> <span data-i18n="check_tex">先检查这份文件</span></button>
+                    </div>
+                    <div class="result-box hidden" id="latex-report"></div>
+                    <details class="latex-caps" id="latex-caps-box" ontoggle="latexCapsToggled(this)">
+                        <summary data-i18n="caps_summary">本软件支持的 LaTeX 范围</summary>
+                        <div class="result-box" id="latex-caps-body"></div>
+                    </details>
+                    <p class="form-note" data-i18n="latex_convert_note">只解析这份 .tex 自身所在目录里的内容（\input、\includegraphics 都限定在同一目录内），不会读取目录之外的文件。成品另存为新文件，源文件保持不变。未能识别的命令会逐条列在结果里，不会静默丢内容。</p>
+                    <br>
+                    <button class="btn" onclick="doConvert()" data-i18n="start_convert">开始转换</button>
+                </div>
+                <div class="status" id="convert-status"></div>
+            </div>
+        </div>
+
+        <!-- 元数据 -->
+        <div class="page" id="page-metadata">
+            <div class="card">
+                <h2 data-i18n="metadata">文档信息</h2>
+                <button class="btn ghost" onclick="selectPdf('metadata')"><span><svg class="gi" aria-hidden="true"><use href="#gi-open"/></svg></span> <span data-i18n="choose_pdf">选择 PDF 文件</span></button>
+                <button class="btn ghost" onclick="loadMetadata()" data-i18n="load_metadata">读取元数据</button>
+                <label data-i18n="metadata_title">标题：</label>
+                <input type="text" id="meta-title">
+                <label data-i18n="metadata_author">作者：</label>
+                <input type="text" id="meta-author">
+                <label data-i18n="metadata_subject">主题：</label>
+                <input type="text" id="meta-subject">
+                <label data-i18n="metadata_keywords">关键词：</label>
+                <input type="text" id="meta-keywords">
+                <br>
+                <button class="btn" onclick="saveMetadata()" data-i18n="save_metadata">保存元数据</button>
+                <div class="status" id="metadata-status"></div>
+                <!-- 生成工具链（LaTeX/TeX 产物识别）：读取 /Info 的 Creator、Producer 字样和页面字体清单，
+                     判出是哪支引擎排的、有没有走过 DVI、字体是否内嵌。只读不改文件。
+                     默认整块不显示（没读出不来、或不是 PDF 工具链相关时不打扰用户）。 -->
+                <div class="tex-prov hidden" id="meta-tex">
+                    <div class="tex-prov-head">
+                        <span class="tex-prov-title" data-i18n="tex_prov_title">生成工具链</span>
+                        <span class="tex-prov-engine" id="meta-tex-engine"></span>
+                    </div>
+                    <details class="tex-prov-more">
+                        <summary data-i18n="tex_prov_detail">展开看文件里留下的原文</summary>
+                        <div class="result-box" id="meta-tex-detail"></div>
+                    </details>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 首次启动设置向导：遮罩盖住主界面，走完或跳过才把当前版本号记进 wizard_version -->
+    <div class="wizard-mask hidden" id="wizard">
+        <div class="wizard-card">
+            <div class="wizard-head">
+                <h2 data-i18n="wiz_title_license" id="wizard-title">使用条款</h2>
+                <div class="wizard-dots" id="wizard-dots"></div>
+            </div>
+            <div class="wizard-body">
+                <!-- 条款排第一步且不可跳过：没同意就没有后面的配色和更新选项 -->
+                <section class="wizard-step" data-step="license">
+                    <p class="wizard-lead" data-i18n="wiz_license_lead">请先阅读以下使用条款。同意后才能继续使用 PDF Toolkit。</p>
+                    <div class="wizard-license markdown-body" id="wizard-license-text" data-i18n="wiz_loading_license">正在加载使用条款…</div>
+                </section>
+                <!-- 语言排在条款之后、外观之前，而且是第一个选项：
+                     后面每一步（包括这一句提示本身）都要用用户选的那句话来说 -->
+                <section class="wizard-step hidden" data-step="language">
+                    <p class="wizard-lead" data-i18n="wiz_language_lead">先选界面语言。默认已经按这台电脑的系统语言选好，不合适可以直接改。</p>
+                    <label for="wizard-lang" data-i18n="language">界面语言</label>
+                    <select id="wizard-lang" onchange="wizardLanguageChanged(this.value)"></select>
+                    <div class="status" id="wizard-lang-note"></div>
+                </section>
+                <section class="wizard-step hidden" data-step="appearance">
+                    <p class="wizard-lead" data-i18n="wiz_appearance_lead">选一个你喜欢的配色，再决定要不要留着那些小字说明；之后在设置里随时能改。</p>
+                    <div class="theme-swatches" id="wizard-themes"></div>
+                    <div class="setting-row">
+                        <div class="setting-label">
+                            <span class="setting-title" data-i18n="wiz_dark">深色模式</span>
+                            <span class="setting-desc" data-i18n="wiz_dark_desc">在光线较暗的环境下使用深色界面</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="wizard-dark" onchange="wizardPreviewTheme()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <!-- 功能说明和配色一样属于「先看一遍再决定要不要留」的观感项，放在这一步而不是更新那一步 -->
+                    <div class="setting-row">
+                        <div class="setting-label">
+                            <span class="setting-title" data-i18n="wiz_notes">功能说明</span>
+                            <span class="setting-desc" data-i18n="wiz_notes_desc">各功能里那些「这一步怎么用」的小字说明，用熟了可以随时在设置里关掉</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="wizard-notes" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </section>
+                <section class="wizard-step hidden" data-step="update">
+                    <p class="wizard-lead" data-i18n="wiz_update_lead">要不要在每次启动时自动检查新版本？发现新版才会提示，断网时静默跳过。</p>
+                    <div class="setting-row">
+                        <div class="setting-label">
+                            <span class="setting-title" data-i18n="wiz_auto_update">启动时自动检查更新</span>
+                            <span class="setting-desc" data-i18n="wiz_auto_update_desc">建议保持开启，以便及时获得修复与新功能</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="wizard-update" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </section>
+                <!-- 右键菜单这一步（第 5 步，放在更新之后）：和设置窗口「高级→更新」那个
+                     #opt-shell-menu 是同一件事、同一个配置键 shell_context_menu。
+                     默认关——这一项动的是用户自己的资源管理器，不能先斩后奏；
+                     标题/说明复用设置窗口已有的 set_shell_menu / set_shell_menu_desc 两键。 -->
+                <section class="wizard-step hidden" data-step="shell">
+                    <p class="wizard-lead" data-i18n="wiz_shell_lead">最后一步：要不要在 PDF 文件上按下鼠标右键时，也能叫本程序打开它？</p>
+                    <div class="setting-row">
+                        <div class="setting-label">
+                            <span class="setting-title" data-i18n="set_shell_menu">资源管理器右键菜单</span>
+                            <span class="setting-desc" data-i18n="set_shell_menu_desc">在 .pdf 文件的右键菜单与「打开方式」里加入本软件；只改当前用户的设置，关掉即撤销，不动 .pdf 的默认打开程序</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="wizard-shell">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <p class="form-note" data-i18n="wiz_shell_note">默认是关的。开启后选中 PDF 文件时，右键菜单里会出现本程序；只改当前用户的设置，不会改变 .pdf 的默认打开程序。这一项以后随时能在「设置 → 高级设置 → 更新」里改。</p>
+                </section>
+            </div>
+            <div class="wizard-foot">
+                <span class="wizard-page" id="wizard-page">1 / 3</span>
+                <div class="spacer"></div>
+                <!-- 第一步：条款只有同意 / 不同意，没有「稍后再说」 -->
+                <div class="row wizard-accept" id="wizard-foot-accept">
+                    <button class="btn ghost" id="wizard-disagree" onclick="wizardDisagree()" data-i18n="wiz_disagree">不同意并退出</button>
+                    <button class="btn" id="wizard-accept" onclick="wizardAccept()" data-i18n="wiz_agree">同意并继续</button>
+                </div>
+                <!-- 后两步：可以回上一步，也可以直接跳过 -->
+                <div class="row wizard-nav" id="wizard-foot-nav">
+                    <button class="btn ghost" onclick="wizardPrev()" data-i18n="wiz_back">上一步</button>
+                    <button class="btn ghost" id="wizard-skip" onclick="wizardSkip()" data-i18n="wiz_later">稍后再说</button>
+                    <button class="btn" id="wizard-next" onclick="wizardNext()" data-i18n="wiz_next">下一步</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通用弹窗：两个窗口共用，内容由 common.js 填充 -->
+    <div class="modal-mask hidden" id="message-modal">
+        <div class="modal">
+            <h3 id="message-modal-title"></h3>
+            <p id="message-modal-text" class="modal-text"></p>
+            <div class="row" id="message-modal-actions"></div>
+        </div>
+    </div>
+
+    <!-- 打印预览页（原来那颗小弹窗升上来的）：打印机、页码范围、份数、单双面、拼版、
+         页序、缩放、边距都在软件里选，左边是按这些选项排出来的真版面（出图走查看页
+         那套 data URL，不新造渲染路径），底下那行随时说「这一趟会怎么打、共几页几张纸」。
+         仍然不调系统的模态打印框：一是那份文件的内容不用交给别的程序，二是打印框弹出来
+         会抢焦点、把窗口挡住，后台验收也就量不到任何东西了。
+         形态上是本项目那一族（顶部一排标签 + 左右两栏 + 底部操作条），不是照着别家的样子抄。 -->
+    <div class="modal-mask hidden print-preview-mask" id="print-modal">
+        <div class="card print-preview-card">
+            <div class="pp-head">
+                <h2 class="pp-title" data-i18n="print_title">打印 PDF</h2>
+                <p class="path-echo pp-file" id="print-file">—</p>
+                <button class="pp-close" onclick="closePrintPanel()"
+                        data-i18n-aria="pp_close" aria-label="关掉打印预览">✕</button>
+            </div>
+            <div class="taskbar pp-taskbar">
+                <div class="pp-tabs" role="tablist">
+                    <!-- 装饰符号走导航栏/卡片同一套 <svg class="gi"> 图形：
+                         原来这里用的是 Unicode 方框字符（▯/▦），界面字体没有这两个码位，
+                         渲染成豆腐块 □（见 tests/out/pp_finish_light.png）。gi-* 符号描边用
+                         currentColor，主题色与深浅色模式自动跟着走，不再引入新图标文件。 -->
+                    <button class="pp-tab active" data-pp-mode="one" onclick="printSetMode('one')"><span><svg class="gi" aria-hidden="true"><use href="#gi-viewer"/></svg></span> <span data-i18n="pp_tab_one">一页一看</span></button>
+                    <button class="pp-tab" data-pp-mode="spread" onclick="printSetMode('spread')"><span><svg class="gi" aria-hidden="true"><use href="#gi-pages"/></svg></span> <span data-i18n="pp_tab_spread">两面并排</span></button>
+                    <button class="pp-tab" data-pp-mode="wall" onclick="printSetMode('wall')"><span><svg class="gi" aria-hidden="true"><use href="#gi-layout"/></svg></span> <span data-i18n="pp_tab_wall">整册铺开</span></button>
+                </div>
+                <div class="row pp-view-tools">
+                    <button class="page-nav-btn" onclick="printZoomStep(-1)" data-i18n-aria="pp_zoom_out" aria-label="缩小一点">−</button>
+                    <span class="page-info" id="pp-zoom-label">100%</span>
+                    <button class="page-nav-btn" onclick="printZoomStep(1)" data-i18n-aria="pp_zoom_in" aria-label="放大一点">+</button>
+                    <button class="page-nav-btn" onclick="printZoomFit()" data-i18n-aria="pp_zoom_fit" aria-label="缩到一屏装得下">⤢</button>
+                </div>
+            </div>
+            <div class="tool-split pp-split">
+                <section class="tool-preview pp-stage">
+                    <div class="preview-toolbar pp-bar-top">
+                        <button class="page-nav-btn" id="pp-first" data-i18n-aria="pp_first" aria-label="回到第一张" onclick="printStepSide(-Infinity)">|◀</button>
+                        <button class="page-nav-btn" id="pp-prev" data-i18n-aria="pp_prev" aria-label="上一面" onclick="printStepSide(-1)">&#8249;</button>
+                        <input type="number" class="page-input" id="pp-jump" min="1" value="1"
+                               data-i18n-aria="pp_jump" aria-label="跳到第几面"
+                               onkeydown="if (event.key === 'Enter') printJumpSide();"
+                               onchange="printJumpSide();">
+                        <span class="page-info" id="pp-at"></span>
+                        <button class="page-nav-btn" id="pp-next" data-i18n-aria="pp_next" aria-label="下一面" onclick="printStepSide(1)">&#8250;</button>
+                        <button class="page-nav-btn" id="pp-last" data-i18n-aria="pp_last" aria-label="到最后一张" onclick="printStepSide(Infinity)">▶|</button>
+                        <span class="toolbar-space"></span>
+                        <span class="page-info" id="pp-tally"></span>
+                    </div>
+                    <div class="page-viewport pp-canvas" id="print-canvas"></div>
+                    <p class="preview-note" id="pp-note"></p>
+                </section>
+                <aside class="tool-controls pp-side">
+                    <label for="print-printer" data-i18n="print_printer">打印机：</label>
+                    <select id="print-printer" onchange="printPrinterChanged()"></select>
+                    <p class="setting-desc" id="print-hint"></p>
+                    <div class="row">
+                        <div class="field field-wide">
+                            <label for="print-pages" data-i18n="print_pages">页码范围：</label>
+                            <input type="text" id="print-pages" class="field-num" placeholder="留空打印全部页，如 1-5, 8"
+                                   data-i18n-placeholder="print_pages_hint" oninput="printPlanChanged()">
+                        </div>
+                        <div class="field">
+                            <label for="print-copies" data-i18n="print_copies">份数：</label>
+                            <!-- 份数不设上限：打几份是用户自己的事，硬夹一个 max 只会让填 30 的框
+                                 变红、点打印才说「不行」，没必要 -->
+                            <input type="number" id="print-copies" class="field-num" value="1" min="1"
+                                   oninput="printPlanChanged()">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="field">
+                            <label for="pp-duplex" data-i18n="pp_duplex">单双面：</label>
+                            <select id="pp-duplex" class="field-sel" onchange="printPlanChanged()">
+                                <option value="off" data-i18n="pp_duplex_off">单面</option>
+                                <option value="long" data-i18n="pp_duplex_long">双面 · 长边翻</option>
+                                <option value="short" data-i18n="pp_duplex_short">双面 · 短边翻</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label for="pp-nup" data-i18n="pp_nup">一张纸几页：</label>
+                            <select id="pp-nup" class="field-sel" onchange="printPlanChanged()">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="4">4</option>
+                                <option value="6">6</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="field">
+                            <label for="pp-order" data-i18n="pp_order">页序：</label>
+                            <select id="pp-order" class="field-sel" onchange="printPlanChanged()">
+                                <option value="normal" data-i18n="pp_order_normal">从前往后</option>
+                                <option value="reverse" data-i18n="pp_order_reverse">从后往前</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label for="pp-fit" data-i18n="pp_fit">版面缩放：</label>
+                            <select id="pp-fit" class="field-sel" onchange="printFitChanged()">
+                                <option value="fit" data-i18n="pp_fit_area">缩到装得下</option>
+                                <option value="actual" data-i18n="pp_fit_actual">纸上的实际大小</option>
+                                <option value="custom" data-i18n="pp_fit_custom">按百分比</option>
+                            </select>
+                        </div>
+                        <div class="field pp-scale-cell hidden" id="pp-scale-cell">
+                            <label for="pp-scale" data-i18n="pp_scale">比例 %：</label>
+                            <input type="number" id="pp-scale" class="field-num" value="100" min="20" max="400" step="5"
+                                   oninput="printPlanChanged()">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="field">
+                            <label for="pp-margin" data-i18n="pp_margin">四边留白 mm：</label>
+                            <!-- 边距夹在 0~25：再大就把 A4 的可打印区吃穿，纸面上只剩一条 -->
+                            <input type="number" id="pp-margin" class="field-num" value="0" min="0" max="25" step="1"
+                                   oninput="printPlanChanged()">
+                        </div>
+                        <p class="form-note pp-side-note" data-i18n="pp_side_note">改上面任何一项，左边版面和底下那行都立刻跟着重算。</p>
+                    </div>
+                </aside>
+            </div>
+            <!-- 这一行说「这一趟会怎么打」：有文字层的文件按文件原样交给 PDF 程序，
+                 取不出文字的才用软件内置出图；页数、份数、双面、拼版折出来的张数一并写在这里。
+                 按下打印之前就能看见，不用等纸出来猜 -->
+            <div class="pp-bar">
+                <p class="setting-desc pp-plan" id="print-mode"></p>
+                <div class="row pp-actions">
+                    <button class="btn ghost" onclick="closePrintPanel()" data-i18n="cancel">取消</button>
+                    <button class="btn" id="print-go" onclick="doPrint()" data-i18n="print_go">打印</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页面管理右键菜单：位置由 pmOpenMenu 按鼠标坐标写死，所以放在 body 层，
+         不跟着 .page 一起被 display:none 掉 -->
+    <div class="pm-menu hidden" id="pm-menu">
+        <div class="pm-menu-title" id="pm-menu-title"></div>
+        <button class="pm-menu-item" onclick="pmMenuAction('ccw')"><span>↺</span> <span data-i18n="rotate_ccw">左转 90°</span></button>
+        <button class="pm-menu-item" onclick="pmMenuAction('cw')"><span>↻</span> <span data-i18n="rotate_cw">右转 90°</span></button>
+        <button class="pm-menu-item" onclick="pmMenuAction('zoom')"><span><svg class="gi" aria-hidden="true"><use href="#gi-zoom"/></svg></span> <span data-i18n="pm_zoom">放大预览</span></button>
+        <div class="pm-menu-sep"></div>
+        <button class="pm-menu-item danger" onclick="pmMenuAction('delete')"><span><svg class="gi" aria-hidden="true"><use href="#gi-trash"/></svg></span> <span data-i18n="delete_page">删除选中</span></button>
+    </div>
+
+    <!-- 发现新版本：正文是 README 里的更新日志，联网读取、渲染方式与许可协议一致 -->
+    <div class="modal-mask hidden" id="update-modal">
+        <div class="modal update-modal">
+            <div class="update-head">
+                <img class="update-icon" src="img/icon.png" alt="PDF Toolkit图标">
+                <div>
+                    <h3 data-i18n="update_available" id="update-modal-title">发现新版本</h3>
+                    <p class="update-sub" id="update-modal-sub">—</p>
+                </div>
+            </div>
+            <p class="update-section-title" data-i18n="update_section_title">本次更新内容</p>
+            <div data-i18n="dyn_1331" class="update-body markdown-body" id="update-modal-notes">正在加载更新内容…</div>
+            <p class="update-meta" id="update-modal-meta"></p>
+            <div class="update-actions">
+                <button data-i18n="wiz_later" class="btn ghost" onclick="closeUpdateModal()">稍后再说</button>
+                <span class="spacer"></span>
+                <button class="btn ghost" onclick="openUpdateReleasePage()" data-i18n="update_full_changelog">查看完整更新日志</button>
+                <button data-i18n="update_now" class="btn" id="update-download" onclick="downloadUpdate()">立即下载</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="js/common.js"></script>
+    <script src="js/markdown.js"></script>
+    <script src="js/app.js"></script>
+    <!-- 7.0.1 的新面板（内容提取 / 排版与整理 / 安全与整理）与书签、图片转 PDF：
+         单独一个文件，app.js 只管原有的 12 页，两边靠 window.onPdfChosen 衔接 -->
+    <script src="js/tools.js"></script>
+</body>
+</html>

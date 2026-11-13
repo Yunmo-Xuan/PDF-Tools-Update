@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>正在启动</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+        font-family: 'Segoe UI', 'Microsoft YaHei', -apple-system, sans-serif;
+        /* 底色只兜两件事：页面画出来之前窗口本身的颜色，和圆角外那四个角。
+           两者都和 main.py 的 background_color / 窗口裁圆对齐，交接时才看不出接缝。 */
+        background: var(--base-bg, #edf4fb);
+        padding: 0;
+        user-select: none;
+        cursor: default;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /* 深浅模式下的渐变落点不一样，切换时给一点点缓冲。
+       body 不在名单里：启动画面的主题是解析 url 时同步定好的（下面 applyTheme 那一处），
+       整窗活下来也只有这一档颜色，没有「运行中换色」需要缓冲。给它挂上 background-color
+       过渡，反而让首帧从 CSS 里那个兜底色慢慢淡到主题淡化色——窗口底色已经是后者，
+       于是交接那 0.3s 里板子和窗口底是两种颜色。 */
+    .panel, h1, .tagline, .chip, .meta, .track, #hint {
+        transition: background .3s ease, background-color .3s ease, color .3s ease;
+    }
+
+    /*
+     * 整个窗口就是一块圆角面板，不再「底 + 卡片」两层。
+     * 以前外面那层底按主题染成饱和蓝、里面再嵌一张近白的卡片，
+     * 于是卡片四周留着一圈 18px 的蓝边——用户看到的就是一个框，
+     * 窗口即便已经裁成圆角，那圈蓝边也还是把方形轮廓描了出来。
+     * 窗口尺寸交给 inset:0 铺满，圆角由窗口区域（main.py）和这里的 border-radius 同时保证。
+     */
+    .panel {
+        position: absolute;
+        /*
+         * 往外多铺 3px、圆角同步放大 3px。窗口区域按 18px 裁（main.py），面板自己的弧
+         * 于是落在裁切线更外侧：圆角以内每一个像素都由面板画，既不会漏出窗口底色，也不会
+         * 漏出窗口矩形那一圈 1px 描边——之前就是这一圈描边在四个角外头看着像个小直角框。
+         */
+        inset: -3px;
+        background: var(--panel-bg, linear-gradient(160deg, #edf4fb 0%, #feffff 60%));
+        border-radius: 21px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        /* 面板比窗口大 3px，内边距照原样加回去，内容才不会跟着挪位 */
+        padding: 47px 55px 45px;
+        overflow: hidden;
+    }
+
+    /* 入场动画只动内容，不动面板：面板一缩放就会把四角的底色露出来 */
+    .stack {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        animation: rise .45s cubic-bezier(.2, .8, .3, 1) both;
+    }
+    @keyframes rise {
+        from { transform: translateY(10px); opacity: .75; }
+        to   { transform: none; opacity: 1; }
+    }
+
+    body.dark { --title: #ececec; --sub: #9aa0a6; }
+
+    .chip {
+        position: absolute;
+        /* 定位基准是往外扩了 3px 的面板，所以往下 3px、往左 3px 才回到原来那个位置 */
+        top: 35px;
+        right: 33px;
+        font-size: 10.5px;
+        letter-spacing: .5px;
+        color: var(--sub, #8fa0b6);
+        background: var(--chip-bg, #f2f6fb);
+        border-radius: 999px;
+        padding: 3px 10px;
+    }
+
+    body.dark .chip { --chip-bg: rgba(255, 255, 255, .07); }
+
+    .logo { filter: drop-shadow(0 8px 16px color-mix(in srgb, var(--primary, #2f67bc) 26%, transparent)); }
+    .logo rect { fill: var(--primary, #2f67bc); }
+
+    h1 {
+        margin-top: 15px;
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: .8px;
+        color: var(--title, #16233a);
+    }
+    .tagline {
+        margin-top: 6px;
+        font-size: 10.5px;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--sub, #93a2b6);
+    }
+
+    .progress { width: 100%; margin-top: 28px; }
+    .track {
+        height: 5px;
+        border-radius: 999px;
+        background: var(--track-bg, #e6edf6);
+        overflow: hidden;
+    }
+    body.dark .track { --track-bg: rgba(255, 255, 255, .1); }
+    .fill {
+        height: 100%;
+        width: 0;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--primary, #2f67bc), color-mix(in srgb, var(--primary, #2f67bc) 45%, #ffffff));
+        transition: width .2s ease-out;
+    }
+    .meta {
+        margin-top: 10px;
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        font-size: 11.5px;
+        color: var(--sub, #6b7c93);
+    }
+    #status { animation: breathe 1.6s ease-in-out infinite; }
+    @keyframes breathe { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+    #percent {
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+        color: var(--primary, #2f67bc);
+    }
+
+    /* 加载太久 / 启动失败时才出现，平时完全不占位置 */
+    #hint {
+        display: none;
+        margin-top: 14px;
+        max-width: 100%;
+        font-size: 11px;
+        line-height: 1.6;
+        text-align: center;
+        white-space: pre-wrap;
+        word-break: break-all;
+        color: var(--sub, #6b7c93);
+    }
+    #hint.show { display: block; }
+    #hint.error { color: #d92f52; animation: none; }
+    body.dark #hint.error { color: #ff8ea3; }
+</style>
+</head>
+<body>
+    <div class="panel">
+        <div class="chip">v<span id="ver">—</span></div>
+
+        <div class="stack">
+            <svg class="logo" viewBox="0 0 64 64" width="56" height="56" aria-hidden="true">
+                <rect x="9" y="5" width="46" height="54" rx="11"/>
+                <path d="M43 5h1a11 11 0 0 1 11 11v2H43z" fill="#ffffff" fill-opacity=".22"/>
+                <text x="32" y="39" text-anchor="middle"
+                      font-family="Segoe UI, Arial, sans-serif"
+                      font-size="15" font-weight="700" fill="#ffffff"
+                      letter-spacing=".5">PDF</text>
+            </svg>
+
+            <h1 id="app-name">PDF 工具箱</h1>
+            <div class="tagline" id="app-tagline">一站式 PDF 工作台</div>
+
+            <div class="progress">
+                <div class="track"><div class="fill" id="fill"></div></div>
+                <div class="meta">
+                    <span id="status">正在启动…</span>
+                    <span id="percent">0%</span>
+                </div>
+            </div>
+            <div id="hint"></div>
+        </div>
+    </div>
+
+<script>
+    (function () {
+        // 与 assets/js/common.js 的 themeGradients、core/splash.py 的 PANEL_START_* 保持一致：
+        // 启动画面要求零依赖，所以这张表在这里再写一份，改主题色时三处一起改。
+        var PALETTE = {
+            blue:   { light: { start: '#728db5', end: '#f4f5f7', primary: '#2f67bc' }, dark: { start: '#141b24', end: '#090b0e', primary: '#84a5d6' } },
+            green:  { light: { start: '#72b593', end: '#f4f7f6', primary: '#218552' }, dark: { start: '#14241c', end: '#090e0c', primary: '#6ece9d' } },
+            cyan:   { light: { start: '#72b0b5', end: '#f4f7f7', primary: '#2a9fa9' }, dark: { start: '#142224', end: '#090e0e', primary: '#6ec7ce' } },
+            teal:   { light: { start: '#72b5b0', end: '#f4f7f7', primary: '#1e7b72' }, dark: { start: '#142422', end: '#090e0e', primary: '#74c9c1' } },
+            purple: { light: { start: '#7c72b5', end: '#f5f4f7', primary: '#422fbc' }, dark: { start: '#171424', end: '#0a090e', primary: '#9085d6' } },
+            pink:   { light: { start: '#b57297', end: '#f7f4f6', primary: '#bc2f7c' }, dark: { start: '#24141d', end: '#0e090c', primary: '#d98db6' } },
+            red:    { light: { start: '#b57380', end: '#f7f4f5', primary: '#bb304c' }, dark: { start: '#241418', end: '#0e090a', primary: '#da909f' } },
+            orange: { light: { start: '#b58f72', end: '#f7f6f4', primary: '#bc6c2f' }, dark: { start: '#241b14', end: '#0e0b09', primary: '#ce986e' } },
+            amber:  { light: { start: '#b59772', end: '#f7f6f4', primary: '#a36b29' }, dark: { start: '#241d14', end: '#0e0c09', primary: '#cea26e' } },
+            slate:  { light: { start: '#8090a8', end: '#f5f6f7', primary: '#3c5981' }, dark: { start: '#181b20', end: '#0a0b0d', primary: '#94a3b8' } }
+        };
+
+        var fill = document.getElementById('fill');
+        var statusEl = document.getElementById('status');
+        var percentEl = document.getElementById('percent');
+        var verEl = document.getElementById('ver');
+        var hintEl = document.getElementById('hint');
+
+        /*
+         * 面板不再分「底 + 卡片」两层，所以这里把主题色直接淡化成一块能压住深色文字的板子。
+         * --base-bg 取面板左上角那一档颜色，和 core/splash.py 的 splash_background_color
+         * 算的是同一个式子：页面画出来之前窗口就是那个颜色，圆角外那四个角也用它，
+         * 交接时才看不出换过一次色。
+         */
+        function applyTheme(theme) {
+            var named = PALETTE[theme && theme.theme_color] || PALETTE.blue;
+            var dark = !!(theme && theme.dark_mode);
+            var c = dark ? named.dark : named.light;
+            var body = document.body;
+            body.classList.toggle('dark', dark);
+            var start = dark ? mix(c.start, '#1b1d33', .7) : mix(c.start, '#ffffff', .9);
+            var end = dark ? mix(c.end, '#101018', .8) : mix(c.end, '#ffffff', .9);
+            body.style.setProperty('--base-bg', start);
+            body.style.setProperty('--panel-bg', 'linear-gradient(160deg, ' + start + ' 0%, ' + end + ' 60%)');
+            body.style.setProperty('--primary', c.primary);
+        }
+
+        // 两个 6 位十六进制色按比例混合，返回 rgb() 串
+        function mix(a, b, ratio) {
+            var ca = hexToRgb(a), cb = hexToRgb(b);
+            if (!ca || !cb) return a;
+            var ch = function (i) { return Math.round(ca[i] * (1 - ratio) + cb[i] * ratio); };
+            return 'rgb(' + ch(0) + ',' + ch(1) + ',' + ch(2) + ')';
+        }
+        function hexToRgb(hex) {
+            var m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+            if (!m) return null;
+            var n = parseInt(m[1], 16);
+            return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+        }
+
+        /*
+         * 版本号和主题是后端建窗口时挂在 url 上的，这里同步读一次。
+         * 走 js_api 要等 pywebview 注入完再跨进程取一回，打包成品实测慢 1s 上下；
+         * 启动画面统共停两三秒，等下来深色模式的用户基本全程在看默认蓝。
+         */
+        var params = new URLSearchParams(location.search);
+        if (params.get('v')) verEl.textContent = params.get('v');
+        if (params.get('t')) applyTheme({theme_color: params.get('t'), dark_mode: params.get('d') === '1'});
+
+        /*
+         * 界面语言同样挂在 url 上（core/splash.py 的 splash_query）。
+         * 启动画面只有两三秒，等 js_api 取文案就来不及了：第一帧就得是用户那门语言。
+         * 读不到（url 被手改、老参数）就退回页面上写死的简体中文，不会白屏。
+         */
+        var TEXTS = {};
+        try { TEXTS = JSON.parse(params.get('x') || '{}') || {}; } catch (e) { TEXTS = {}; }
+        function txt(key, fallback) { return TEXTS[key] || fallback; }
+        if (TEXTS.splash_title) document.title = TEXTS.splash_title;
+        if (TEXTS.splash_status) statusEl.textContent = TEXTS.splash_status;
+        // 软件名和那句副标题也按语言写：页面上那两行是简体中文兜底，
+        // 只有 url 上那份文案没带过来（被手改坏）时才露出来。
+        if (TEXTS.app_title) document.getElementById('app-name').textContent = TEXTS.app_title;
+        if (TEXTS.app_tagline) document.getElementById('app-tagline').textContent = TEXTS.app_tagline;
+
+        var painted = false;
+
+        function connect() {
+            var api = window.pywebview && window.pywebview.api;
+            if (!api || painted || !api.report_painted) return;
+            painted = true;
+            // 首帧时间戳由后端记录：启动画面还得再留多久，从这里算而不是从进程启动算
+            // 这一次往返同时把当前进度取回来，省掉页面从 0 重放一遍
+            Promise.resolve(api.report_painted()).then(applyStage).catch(function () { painted = false; });
+        }
+
+        /*
+         * pywebview 的 api 是在页面跑起来之后才注入的，
+         * 只试一次会把「首帧已经画好」这件事整个丢掉，
+         * 后端等不到信号只能按超时算，启动画面就白多等十秒。
+         */
+        if (window.requestAnimationFrame) {
+            requestAnimationFrame(function () { requestAnimationFrame(connect); });
+        }
+        window.addEventListener('pywebviewready', connect);
+        var tries = 0;
+        var connectTimer = setInterval(function () {
+            connect();
+            // 打包成品冷启动时 pymupdf 会把 GIL 占满，api 注入能拖到七八秒以后，
+            // 轮询要撑过后端等首帧的那 10s，否则两边各自按超时走
+            if (painted || ++tries > 150) clearInterval(connectTimer);
+        }, 80);
+        connect();
+
+        /*
+         * 进度条只跟着后端的真实里程碑走。
+         *
+         * 里程碑（核心模块就绪 / 主窗口建好 / 页面 loaded）是跳变的，直接显示会一顿一顿，
+         * 所以这里记住后端确认到的位置 target，画面上的 progress 匀速去追它，
+         * 但绝不越过 target——条子宁可走得慢，也不能骗人说快好了。
+         */
+        var target = 0;
+        var progress = 0;
+        var stopped = false;
+        var startedAt = Date.now();
+
+        function draw() {
+            fill.style.width = progress + '%';
+            percentEl.textContent = Math.round(progress) + '%';
+        }
+
+        function setStage(percent, label) {
+            if (stopped) return;
+            var p = Number(percent);
+            if (!isFinite(p)) return;
+            p = Math.max(0, Math.min(100, p));
+            if (label) statusEl.textContent = label;
+            if (p <= target) return;
+            target = p;
+            // 最后一步不再匀速追：条子直接扫到尾，配合 .fill 的 0.2s 过渡正好走完
+            if (target >= 100) {
+                progress = 100;
+                draw();
+            }
+        }
+        window.setStartupStage = setStage;
+
+        setInterval(function () {
+            if (stopped) return;
+            if (progress < target) {
+                // 每 45ms 最多走 5.5 个点（约 120%/s）：整个启动只有一两秒，
+                // 追得慢的条子永远落在里程碑后面，交接时停在四成多，看起来还是假的。
+                progress = Math.min(target, progress + Math.max(0.6, Math.min(5.5, (target - progress) * 0.16)));
+                draw();
+            }
+            // 核心模块比平时慢（冷启动、杀软扫描），提前给句话，别让人以为卡死了
+            if (!hintEl.classList.contains('show') && Date.now() - startedAt > 15000) {
+                hintEl.className = 'show';
+                hintEl.textContent = txt('splash_slow', '首次启动需要多加载一些组件，请稍等…');
+            }
+        }, 45);
+
+        /*
+         * 首帧信号顺带把当前进度取回来：后端此时多半已经走完几个里程碑了
+         * （页面要等 WebView2 初始化，那三四秒里核心模块早就加载完了），
+         * 少一次往返就少一次「条子从 0 开始重放」。
+         */
+        function applyStage(res) {
+            if (res && res.success) setStage(res.percent, res.label);
+        }
+
+        // 后端的 evaluate_js 推不过来的话（GUI 线程被重依赖占住），页面自己来问
+        var pullTimer = setInterval(function () {
+            var api = window.pywebview && window.pywebview.api;
+            if (!api || !api.startup_stage) return;
+            if (target >= 100 || Date.now() - startedAt > 60000) {
+                clearInterval(pullTimer);
+                return;
+            }
+            Promise.resolve(api.startup_stage()).then(applyStage).catch(function () {});
+        }, 300);
+
+        // 后端加载核心模块失败时调用：进度条与轮询全部停住，把日志位置告诉用户
+        window.showStartupFailure = function (message) {
+            stopped = true;
+            clearInterval(pullTimer);
+            statusEl.style.animation = 'none';
+            statusEl.textContent = txt('splash_failed', '启动失败');
+            hintEl.className = 'show error';
+            hintEl.textContent = message || txt('splash_failed', '启动失败');
+        };
+    })();
+</script>
+</body>
+</html>

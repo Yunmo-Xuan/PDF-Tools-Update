@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title data-i18n="set_title">设置</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="window-body">
+    <div class="loading-bar" id="loading-bar"></div>
+
+    <header class="window-header">
+        <h1 data-i18n="set_title">设置</h1>
+    </header>
+
+    <nav class="tabs" role="tablist">
+        <button class="tab active" data-tab="general" role="tab" onclick="switchTab('general', event)" data-i18n="set_tab_general">基础设置</button>
+        <button class="tab" data-tab="advanced" role="tab" onclick="switchTab('advanced', event)" data-i18n="set_tab_advanced">高级设置</button>
+        <button class="tab" data-tab="about" role="tab" onclick="switchTab('about', event)" data-i18n="set_tab_about">关于</button>
+    </nav>
+
+    <main class="window-main">
+        <!-- 三个标签页用的是同一种形态：页内再分小页（.subtabs + .subpanel），
+             一个小页一屏放得下。以前基础/高级是「一长页卡片排到底」，
+             他要的就是「关于」那种一页里分小页的样子（2026-10-31 图5 圈的）。
+             控件的 id 一个都没动：后端按 id 读写配置，验收也按 id 断言。 -->
+        <section class="tab-panel active" id="tab-general">
+            <nav class="subtabs" role="tablist">
+                <button class="subtab active" data-sub="appearance" role="tab"
+                        onclick="switchSettingSub('general', 'appearance', event)"
+                        data-i18n="set_group_appearance">外观</button>
+                <button class="subtab" data-sub="interface" role="tab"
+                        onclick="switchSettingSub('general', 'interface', event)"
+                        data-i18n="set_group_interface">界面行为</button>
+                <button class="subtab" data-sub="first-run" role="tab"
+                        onclick="switchSettingSub('general', 'first-run', event)"
+                        data-i18n="set_group_first_run">首次设置</button>
+            </nav>
+
+            <div class="subpanel active" id="general-appearance">
+                <!-- 色板一行放不下十个，整行改成上下排布，标签才不会被压成一列竖字 -->
+                <div class="setting-row stack">
+                    <div class="setting-label">
+                        <span class="setting-title" data-i18n="set_theme">主题色</span>
+                        <span class="setting-desc" data-i18n="set_theme_desc">界面主色调，修改后立即预览</span>
+                    </div>
+                    <div class="theme-swatches" id="theme-swatches"></div>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <span class="setting-title" data-i18n="set_dark">深色模式</span>
+                        <span class="setting-desc" data-i18n="set_dark_desc">在光线较暗的环境下使用深色界面</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="opt-dark" onchange="previewTheme()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <!-- 语言放在外观里：它改的就是「看起来是什么样」，和主题色、深色是同一类。
+                     下拉框 onchange 只写进控件，点「应用」才落盘并广播（和其他项一致） -->
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <span class="setting-title" data-i18n="set_language">界面语言</span>
+                        <span class="setting-desc" data-i18n="set_language_desc">界面文字使用的语言，默认跟随这台电脑的系统语言；改完点「应用」立即生效</span>
+                    </div>
+                    <select id="opt-language"></select>
+                </div>
+            </div>
+
+            <div class="subpanel" id="general-interface">
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <span class="setting-title" data-i18n="set_notes">功能说明</span>
+                        <span class="setting-desc" data-i18n="set_notes_desc">显示在各功能下方的操作说明；熟悉功能后可关闭，界面更简洁</span>
+                    </div>
+                    <label class="switch">
+                        <!-- 出厂默认「开」要和 DEFAULT_CONFIG 一致：配置是异步读回来的，
+                             没有这个 checked 的话窗口刚出来那一瞬是「关」，
+                             在那一瞬点保存会把用户的设置写成关。 -->
+                        <input type="checkbox" id="opt-notes" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <span class="setting-title" data-i18n="set_nav_hover">导航栏悬停展开</span>
+                        <span class="setting-desc" data-i18n="set_nav_hover_desc">导航栏收成图标条后，鼠标移到侧边就临时亮出功能名，移开自动收回；点右沿把手才是固定展开或固定收起</span>
+                    </div>
+                    <label class="switch">
+                        <!-- 出厂默认「开」要和 DEFAULT_CONFIG 的 sidebar_hover_expand 一致，
+                             理由同上面那一项：窗口刚出来那一瞬读的是这里的初值。 -->
+                        <input type="checkbox" id="opt-nav-hover" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="subpanel" id="general-first-run">
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <span class="setting-title" data-i18n="set_wizard">设置向导</span>
+                        <span class="setting-desc" data-i18n="set_wizard_desc">重新走一遍首次启动时的语言 / 外观 / 许可 / 更新设置</span>
+                    </div>
+                    <button class="btn ghost" onclick="runWizard()" data-i18n="set_run_wizard">运行向导</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 高级设置：更新 / 性能与暂存 / 日志与诊断 三个小页 -->
+        <section class="tab-panel" id="tab-advanced">
+            <nav class="subtabs" role="tablist">
+                <button class="subtab active" data-sub="update" role="tab"
+                        onclick="switchSettingSub('advanced', 'update', event)"
+                        data-i18n="set_group_update">更新</button>
+                <button class="subtab" data-sub="performance" role="tab"
+                        onclick="switchSettingSub('advanced', 'performance', event)"
+                        data-i18n="set_group_performance">性能与暂存</button>
+                <button class="subtab" data-sub="log" role="tab"
+                        onclick="switchSettingSub('advanced', 'log', event)"
+                        data-i18n="set_group_log">日志与诊断</button>
+            </nav>
+
+            <div class="subpanel active" id="advanced-update">
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <span class="setting-title" data-i18n="set_auto_update">启动时自动检查更新</span>
+                        <span class="setting-desc" data-i18n="set_auto_update_desc">发现新版本时提示；未联网或已是最新时静默跳过</span>
+                    </div>
+                    <label class="switch">
+                        <!-- 同「功能说明」：出厂态要和 DEFAULT_CONFIG 的 true 对上。
+                             配置是异步读回来的，这里不写 checked 的话窗口刚出来是「关」，
+                             那一瞬点保存就把用户的自动更新悄悄关了。 -->
+                        <input type="checkbox" id="opt-update" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <span class="setting-title" data-i18n="set_check_now">现在检查一次</span>
+                        <span data-i18n="set_update_checked" class="setting-desc" id="update-result">尚未检查</span>
+                    </div>
+                    <button class="btn ghost" onclick="checkUpdateNow()" data-i18n="set_check_update">检查更新</button>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <span class="setting-title" data-i18n="set_shell_menu">资源管理器右键菜单</span>
+                        <span class="setting-desc" data-i18n="set_shell_menu_desc">在 .pdf 文件的右键菜单与「打开方式」里加入本软件；只改当前用户的设置，关掉即撤销，不动 .pdf 的默认打开程序</span>
+                    </div>
+                    <label class="switch">
+                        <!-- 出厂默认「关」要和 DEFAULT_CONFIG 的 shell_context_menu 一致：
+                             这一项动的是用户自己的资源管理器，不能程序先斩后奏；
+                             窗口刚出来那一瞬读的就是这里的初值（理由同其它开关）。 -->
+                        <input type="checkbox" id="opt-shell-menu">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="subpanel" id="advanced-performance">
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <span class="setting-title" data-i18n="set_thumb_dpi">页面缩略图清晰度</span>
+                        <span class="setting-desc" data-i18n="set_thumb_dpi_desc">页面管理里每格页面的清楚程度。越清楚越费内存和显图时间；千页以上的册子建议标清</span>
+                    </div>
+                    <select id="opt-thumb-dpi">
+                        <option value="64" data-i18n="dpi_std">标清（默认）</option>
+                        <option value="96" data-i18n="dpi_hd">高清</option>
+                        <option value="128" data-i18n="dpi_uhd">超清</option>
+                    </select>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <span class="setting-title" data-i18n="set_draft_policy">未保存的页面改动</span>
+                        <span class="setting-desc" data-i18n="drafts_desc_long">页面管理里的改动每停手 0.8 秒留一份底，程序被强杀或断电后下次打开同一份 PDF 会问你要不要接上。留的只是页序和旋转，不含页面内容</span>
+                    </div>
+                    <select id="opt-draft-policy">
+                        <option data-i18n="set_draft_keep_recent" value="keep_recent">保留最近 10 份（默认）</option>
+                        <option data-i18n="set_draft_keep_current" value="keep_current">只留当前这一份</option>
+                        <option data-i18n="set_draft_off" value="off">不留底</option>
+                    </select>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <span class="setting-title" data-i18n="set_ocr_preload">OCR 后台预加载</span>
+                        <span class="setting-desc" data-i18n="set_ocr_preload_desc">打开程序后就在后台把文字识别引擎准备好，第一次用 OCR 不用干等；关掉可以少占几百 MB 内存</span>
+                    </div>
+                    <label class="switch">
+                        <!-- 出厂默认要和 DEFAULT_CONFIG 的 ocr_preload 对上（同「功能说明」那条理由） -->
+                        <input type="checkbox" id="opt-ocr-preload" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="subpanel" id="advanced-log">
+                <!-- 日志这一项内容多（路径 + 两句占用说明 + 两个按钮），
+                     整行改成上下排布，标签才不会被压成一窄条 -->
+                <div class="setting-row stack">
+                    <div class="setting-label">
+                        <span class="setting-title" data-i18n="set_log">运行日志</span>
+                        <span class="setting-desc" id="log-path">—</span>
+                        <span class="setting-desc" id="log-usage">—</span>
+                        <span class="setting-desc" id="log-protected">—</span>
+                    </div>
+                    <!-- 日志固定写在同一个目录里：运行日志可清，
+                         安装/首次运行与报错日志另外留存、不参与清理 -->
+                    <div class="row">
+                        <button class="btn ghost" onclick="openLog()" data-i18n="set_open_log">打开日志目录</button>
+                        <button class="btn ghost" onclick="clearLog()" data-i18n="set_clean_log">清理日志</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 关于：基本信息 / 更新日志 / 使用条款 收在同一模块下，顶层只留三个标签 -->
+        <section class="tab-panel" id="tab-about">
+            <div class="about-head">
+                <img class="about-badge" id="about-icon" src="img/icon.png" alt="PDF Toolkit图标">
+                <div>
+                    <h2 data-i18n="app_title" id="about-name">PDF Toolkit</h2>
+                    <p class="about-version">版本 <b id="about-version">—</b></p>
+                </div>
+            </div>
+
+            <nav class="subtabs" role="tablist">
+                <button data-i18n="set_basic" class="subtab active" data-sub="info" role="tab" onclick="switchAboutSub('info', event)">基本信息</button>
+                <button data-i18n="set_changelog" class="subtab" data-sub="changes" role="tab" onclick="switchAboutSub('changes', event)">更新日志</button>
+                <button data-i18n="wiz_title_license" class="subtab" data-sub="license" role="tab" onclick="switchAboutSub('license', event)">使用条款</button>
+            </nav>
+
+            <div class="subpanel active" id="about-info">
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <span data-i18n="set_author" class="setting-title">作者</span>
+                    </div>
+                    <span class="setting-desc" id="about-author">—</span>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <span data-i18n="set_source" class="setting-title">更新源</span>
+                        <span class="setting-desc" id="about-update-url">—</span>
+                    </div>
+                    <button data-i18n="set_open_browser" class="btn ghost" onclick="openUpdatePage()">在浏览器中查看</button>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <span data-i18n="set_config" class="setting-title">配置文件</span>
+                        <span class="setting-desc" id="about-config">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 更新日志：联网读取 + 本地缓存，正文来自仓库 README.md，只显示本机这个大版本 -->
+            <div class="subpanel" id="about-changes">
+                <div class="license-bar">
+                    <span class="setting-desc" id="changes-meta">—</span>
+                    <button data-i18n="set_refresh" class="btn ghost" onclick="refreshChanges()">获取最新</button>
+                    <button data-i18n="set_open_browser" class="btn ghost" onclick="openUpdateReleasePage()">在浏览器中查看</button>
+                </div>
+                <div data-i18n="set_loading" class="license-text markdown-body" id="changes-text">正在加载…</div>
+            </div>
+
+            <div class="subpanel" id="about-license">
+                <div class="license-bar">
+                    <span class="setting-desc" id="license-meta">—</span>
+                    <button data-i18n="set_refresh" class="btn ghost" onclick="refreshLicense()">获取最新</button>
+                    <button data-i18n="set_open_browser" class="btn ghost" onclick="openLicensePage()">在浏览器中查看</button>
+                </div>
+                <div data-i18n="set_loading" class="license-text markdown-body" id="license-text">正在加载…</div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="window-footer">
+        <span class="status" id="settings-status"></span>
+        <div class="spacer"></div>
+        <button class="btn ghost" onclick="restoreDefaults()" data-i18n="set_restore">恢复默认</button>
+        <button class="btn" onclick="applySettings()" data-i18n="set_apply">应用</button>
+        <button class="btn ghost" onclick="closeSettingsWindow()" data-i18n="set_close">关闭</button>
+    </footer>
+
+    <!-- 发现新版本：正文是 README 里的更新日志，联网读取、渲染方式与许可协议一致 -->
+    <div class="modal-mask hidden" id="update-modal">
+        <div class="modal update-modal">
+            <div class="update-head">
+                <img class="update-icon" src="img/icon.png" alt="PDF Toolkit图标">
+                <div>
+                    <h3 data-i18n="update_available" id="update-modal-title">发现新版本</h3>
+                    <p class="update-sub" id="update-modal-sub">—</p>
+                </div>
+            </div>
+            <p class="update-section-title" data-i18n="update_section_title">本次更新内容</p>
+            <div data-i18n="dyn_1331" class="update-body markdown-body" id="update-modal-notes">正在加载更新内容…</div>
+            <p class="update-meta" id="update-modal-meta"></p>
+            <div class="update-actions">
+                <button data-i18n="wiz_later" class="btn ghost" onclick="closeUpdateModal()">稍后再说</button>
+                <span class="spacer"></span>
+                <button class="btn ghost" onclick="openUpdateReleasePage()" data-i18n="update_full_changelog">查看完整更新日志</button>
+                <button data-i18n="update_now" class="btn" id="update-download" onclick="downloadUpdate()">立即下载</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-mask hidden" id="message-modal">
+        <div class="modal">
+            <h3 id="message-modal-title"></h3>
+            <p id="message-modal-text" class="modal-text"></p>
+            <div class="row" id="message-modal-actions"></div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="js/common.js"></script>
+    <script src="js/markdown.js"></script>
+    <script src="js/settings.js"></script>
+</body>
+</html>

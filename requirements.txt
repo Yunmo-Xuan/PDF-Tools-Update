@@ -1,0 +1,22 @@
+# 运行依赖
+pywebview>=5.0
+pymupdf>=1.26.1
+pypdf>=4.0.0
+Pillow>=10.0.0
+pdf2docx>=0.5.8
+pdfplumber>=0.11.0
+python-pptx>=0.6.23
+openpyxl>=3.1.0
+
+# OCR（全量随包，模型在 resources/ocr_models，不按需下载）
+# paddlex 3.7 要求 numpy<2.4；OpenCV 两份都装是因为 pdf2docx 的元数据要
+# opencv-python-headless，而 paddlex 钉死 opencv-contrib-python 4.10.0.84。
+numpy>=1.26,<2.4
+opencv-python-headless==4.10.0.84
+opencv-contrib-python==4.10.0.84
+paddlepaddle==3.3.1
+paddleocr==3.7.0
+paddlex==3.7.2
+
+# 打包依赖（仅 build.bat 需要，运行程序本身不需要）
+pyinstaller>=6.0

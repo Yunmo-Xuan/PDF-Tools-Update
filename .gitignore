@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+# 构建用的那份虚拟环境约 1 GB，跟着机器走、不入库（重建见 README「本机跑起来」）
+.venv-x64/
+
+# PyInstaller
+build/
+dist/
+# 根目录的 PDFToolkit.spec 是 build.bat 每次构建前删掉、由 PyInstaller 按命令行
+# 参数重新生成的产物（打包参数一律改 build.bat，改这个文件下次构建就没了），
+# 所以它继续忽略，不进版本管理。
+*.spec
+
+# 由 installer/make_version_info.py 生成，不入库
+installer/version_info.txt
+installer/version.iss
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+
+# 真机验收套件的产物（tests/RUNBOOK.md 第 0 节）：每套日志、截图、保存出来的中间成品
+tests/out/
+# 样本 PDF 由 tests/make_fixtures.py 生成（含中文/空格文件名和加密样本），不入库；
+# 页数、页首文字这些性质写在脚本里，重新 all 一次就能拿回来。
+tests/fixtures/*.pdf
+
+# 随包但不入库的二进制（约 190 MB + 205 MB，clone 时用不了 GitHub 大文件也能理解，
+# 取法写在 README「仓库里没有的东西」那一节）
+resources/ocr_models/
+installer/vendor/
+
+# 开发过程中的留底与参照件，不属于源码
+backup/
+references/
+*.log
